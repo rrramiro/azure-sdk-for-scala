@@ -1,10 +1,11 @@
 package fr.ramiro.azure.services.subscriptions
 
 import com.google.common.reflect.TypeToken
-import com.microsoft.azure.{ AzureServiceResponseBuilder, CloudException, Page, PagedList }
+import com.microsoft.azure.{ CloudException, Page, PagedList }
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model.PageImpl1
+import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import fr.ramiro.azure.services.subscriptions.model.Subscription
 import okhttp3.ResponseBody
 import retrofit2.{ Call, Response }
@@ -37,15 +38,20 @@ class SubscriptionsService(azure: Azure) {
   }
 
   private def getDelegate(response: Response[ResponseBody]): ServiceResponse[Subscription] = {
-    new AzureServiceResponseBuilder[Subscription, CloudException](azure.mapperAdapter).register(200, new TypeToken[Subscription]() {}.getType).registerError(classOf[CloudException]).build(response)
+    new AzureServiceResponseBuilder[Subscription](azure.mapperAdapter, new TypeToken[Subscription]() {}.getType, 200).build(response, addParent)
+  }
+
+  private def addParent(sub: Subscription): Subscription = {
+    sub.azure = azure
+    sub
   }
 
   private def listDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl1[Subscription]] = {
-    new AzureServiceResponseBuilder[PageImpl1[Subscription], CloudException](azure.mapperAdapter).register(200, new TypeToken[PageImpl1[Subscription]]() {}.getType).registerError(classOf[CloudException]).build(response)
+    new AzureServiceResponseBuilder[Subscription](azure.mapperAdapter, new TypeToken[PageImpl1[Subscription]]() {}.getType, 200).buildPaged(response, addParent)
   }
 
   private def listNextDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl1[Subscription]] = {
-    new AzureServiceResponseBuilder[PageImpl1[Subscription], CloudException](azure.mapperAdapter).register(200, new TypeToken[PageImpl1[Subscription]]() {}.getType).registerError(classOf[CloudException]).build(response)
+    new AzureServiceResponseBuilder[Subscription](azure.mapperAdapter, new TypeToken[PageImpl1[Subscription]]() {}.getType, 200).buildPaged(response, addParent)
   }
 
   trait SubscriptionsInternal {

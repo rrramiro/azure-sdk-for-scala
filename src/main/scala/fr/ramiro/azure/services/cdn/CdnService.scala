@@ -1,9 +1,10 @@
 package fr.ramiro.azure.services.cdn
 
 import com.google.common.reflect.TypeToken
-import com.microsoft.azure.{ AzureServiceResponseBuilder, CloudException }
+import com.microsoft.azure.CloudException
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
+import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http._
@@ -26,10 +27,11 @@ class CdnService(azure: Azure) {
   )
 
   private def purgeDelegate(call: Call[ResponseBody]) = {
-    new AzureServiceResponseBuilder[Void, CloudException](azure.mapperAdapter)
-      .register(purgeStatusCode, new TypeToken[Void] {}.getType)
-      .registerError(classOf[CloudException])
-      .build(call.execute())
+    new AzureServiceResponseBuilder[Void](
+      azure.mapperAdapter,
+      new TypeToken[Void]() {}.getType,
+      purgeStatusCode
+    ).build(call.execute(), identity) //TODO replace identity
   }
 
   private case class PurgeRequest(ContentPaths: Seq[String])
