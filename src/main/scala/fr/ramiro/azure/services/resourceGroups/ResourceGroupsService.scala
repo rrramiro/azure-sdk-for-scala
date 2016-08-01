@@ -1,14 +1,14 @@
 package fr.ramiro.azure.services.resourceGroups
 
 import com.google.common.reflect.TypeToken
-import com.microsoft.azure.{Page, PagedList}
+import com.microsoft.azure.{ Page, PagedList }
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.model.PageImpl1
 import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import fr.ramiro.azure.services.subscriptions.model.Subscription
 import okhttp3.ResponseBody
-import retrofit2.{Call, Response}
-import retrofit2.http.{POST, Url, _}
+import retrofit2.{ Call, Response }
+import retrofit2.http.{ POST, Url, _ }
 import fr.ramiro.azure.services.resourceGroups.model._
 
 class ResourceGroupsService(subscription: Subscription) {
@@ -17,7 +17,6 @@ class ResourceGroupsService(subscription: Subscription) {
   val defaultApiVersion = "2015-11-01"
   val defaultAcceptLanguage = "en-US"
   val defaultUserAgent = s"Azure-SDK-For-Java/${getClass.getPackage.getImplementationVersion} (SubscriptionClient, $defaultApiVersion)"
-
 
   def list = {
     val response = listDelegate(resourceGroupsInternal.list(subscription.subscriptionId, null, null, defaultApiVersion, defaultAcceptLanguage, defaultUserAgent).execute())
@@ -47,7 +46,6 @@ class ResourceGroupsService(subscription: Subscription) {
   private def listNextDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl1[ResourceGroupInner]] = {
     new AzureServiceResponseBuilder[ResourceGroupInner](azure.mapperAdapter, new TypeToken[PageImpl1[ResourceGroupInner]]() {}.getType, 200).buildPaged(response, addParent)
   }
-
 
   trait ResourceGroupsInternal {
     @Headers(Array("Content-Type: application/json; charset=utf-8"))

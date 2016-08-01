@@ -15,7 +15,7 @@ class AzureTest extends FunSuite {
   test("subscriptions") {
     Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.getBody.asScala.foreach { subscription =>
       println(subscription)
-      subscription.resourceGroups.list.getBody.asScala.foreach{resourceGroup => println(resourceGroup)}
+      subscription.resourceGroups.list.getBody.asScala.foreach { resourceGroup => println(resourceGroup) }
     }
   }
 }
