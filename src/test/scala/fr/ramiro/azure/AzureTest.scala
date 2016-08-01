@@ -1,6 +1,7 @@
 package fr.ramiro.azure
 
 import fr.ramiro.azure.services.subscriptions._
+import fr.ramiro.azure.services.resourceGroups._
 import okhttp3.logging.HttpLoggingInterceptor
 import org.scalatest.FunSuite
 
@@ -14,6 +15,7 @@ class AzureTest extends FunSuite {
   test("subscriptions") {
     Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.getBody.asScala.foreach { subscription =>
       println(subscription)
+      subscription.resourceGroups.list.getBody.asScala.foreach{resourceGroup => println(resourceGroup)}
     }
   }
 }
