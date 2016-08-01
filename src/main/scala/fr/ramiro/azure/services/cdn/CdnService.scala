@@ -10,12 +10,12 @@ import retrofit2.http._
 
 class CdnService(azure: Azure) {
   val defaultApiVersion = "2016-04-02"
-  val cdnService = azure.retrofit.create(classOf[CdnServiceInternal])
+  val cdnInternal = azure.retrofit.create(classOf[CdnInternal])
   val purgeStatusCode = 202
 
   @throws(classOf[CloudException])
   def cdnPurge(resourceGroupName: String, profileName: String, endpointName: String, contentPaths: String*): ServiceResponse[Void] = purgeDelegate(
-    cdnService.purge(
+    cdnInternal.purge(
       azure.subscriptionId,
       resourceGroupName,
       profileName,
@@ -34,7 +34,7 @@ class CdnService(azure: Azure) {
 
   private case class PurgeRequest(ContentPaths: Seq[String])
 
-  trait CdnServiceInternal {
+  trait CdnInternal {
     /**
      * @param subscriptionId	Azure Subscription ID.
      * @param resourceGroupName	Name of the resource group within the Azure subscription.
