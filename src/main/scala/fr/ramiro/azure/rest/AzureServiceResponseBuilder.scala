@@ -7,7 +7,7 @@ import java.lang.reflect.Type
 import com.google.common.reflect.TypeToken
 import com.microsoft.azure.{ CloudError, CloudException }
 import com.microsoft.rest._
-import fr.ramiro.azure.model.PageImpl
+import fr.ramiro.azure.model.{ ListResponse, PageImpl }
 import okhttp3.ResponseBody
 import retrofit2.Response
 
@@ -30,11 +30,11 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  def buildList(response: Response[ResponseBody], convert: T => T): ServiceResponse[PageImpl[T]] = {
+  def buildList(response: Response[ResponseBody], convert: T => T): ServiceResponse[ListResponse[T]] = {
     val statusCode: Int = response.code
     val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
     if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
-      new ServiceResponse[PageImpl[T]](buildBodyList(statusCode, responseBody, convert), response)
+      new ServiceResponse[ListResponse[T]](buildBodyList(statusCode, responseBody, convert), response)
     } else {
       throw new CloudException("Invalid status code " + statusCode) {
         setResponse(response)
@@ -57,7 +57,6 @@ class AzureServiceResponseBuilder[T](
   }
 
   def buildEmpty(response: Response[Void]): ServiceResponse[T] = {
-
     val statusCode: Int = response.code
     if (expectedStatusCode.contains(statusCode)) {
       if (new TypeToken[T](getClass) {}.getRawType.isAssignableFrom(classOf[Boolean])) {
@@ -74,14 +73,14 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  private def buildBodyList(statusCode: Int, responseBody: ResponseBody, convert: T => T): PageImpl[T] = {
+  private def buildBodyList(statusCode: Int, responseBody: ResponseBody, convert: T => T): ListResponse[T] = {
     val body = responseBody.string
     responseBody.close()
     if (body.isEmpty) {
       null
     } else {
-      val result = mapperAdapter.deserialize[PageImpl[T]](body, resultType).updateItems { convert }
-      result
+      val result = mapperAdapter.deserialize[ListResponse[T]](body, resultType)
+      result.copy(value = result.value.map { convert })
     }
   }
 

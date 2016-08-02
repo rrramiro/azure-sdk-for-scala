@@ -4,22 +4,21 @@ import java.lang.reflect.Type
 
 import com.google.common.reflect.TypeToken
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.PageImpl
+import fr.ramiro.azure.model.{ ListResponse, PageImpl }
 import fr.ramiro.azure.services.ListService
 import fr.ramiro.azure.services.cdn.model.CdnProfile
 import okhttp3.{ MediaType, ResponseBody }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FunSuite
 import retrofit2.{ Call, Response }
-import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 
 class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
   val mockCall = mock[Call[ResponseBody]]
 
   object FakeListService extends ListService[CdnProfile] {
     override val mapperAdapter = new Azure.AzureJacksonMapperAdapter
-    override val listedType: Type = new TypeToken[PageImpl[CdnProfile]]() {}.getType
-    override val getType: Type = new TypeToken[CdnProfile]() {}.getType
+    override val listedType: Type = new TypeToken[ListResponse[CdnProfile]]() {}.getType
+    override val getType: Type = classOf[CdnProfile]
     override val listInternal: Call[ResponseBody] = mockCall
     override def getInternal(id: String): Call[ResponseBody] = mockCall
     override def addParent(child: CdnProfile): CdnProfile = child
@@ -30,7 +29,7 @@ class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
       ResponseBody.create(MediaType.parse("text/plain"), cdnProfileList)
     ))
 
-    val result = FakeListService.list.getBody.asScala
+    val result = FakeListService.list.getBody
 
     assert(result.size === 2)
     assert(result.head.name === "{profileName}")

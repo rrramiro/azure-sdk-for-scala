@@ -4,7 +4,7 @@ import java.lang.reflect.Type
 
 import com.google.common.reflect.TypeToken
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.PageImpl
+import fr.ramiro.azure.model.{ ListResponse, PageImpl }
 import fr.ramiro.azure.services.ListService
 import fr.ramiro.azure.services.cdn.model.CdnProfile
 import okhttp3.ResponseBody
@@ -16,7 +16,7 @@ class CdnProfilesService(azure: Azure, subscriptionId: String, resourceGroupName
   private val cdnProfileServiceInternal = azure.retrofit.create(classOf[CdnProfileServiceInternal])
   override val defaultApiVersion = "2016-04-02"
   override val getType: Type = new TypeToken[CdnProfile]() {}.getType
-  override val listedType: Type = new TypeToken[PageImpl[CdnProfile]]() {}.getType
+  override val listedType: Type = new TypeToken[ListResponse[CdnProfile]]() {}.getType
 
   override def addParent(child: CdnProfile): CdnProfile = child
 

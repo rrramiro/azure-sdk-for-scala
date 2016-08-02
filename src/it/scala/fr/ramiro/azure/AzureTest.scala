@@ -14,7 +14,7 @@ class AzureTest extends FunSuite {
       println(subscription)
       subscription.resourceGroups.list.getBody.asScala.foreach { resourceGroup =>
         println(resourceGroup)
-        resourceGroup.cdnProfiles.list.getBody.asScala.foreach { cdnProfile =>
+        resourceGroup.cdnProfiles.list.getBody.foreach { cdnProfile =>
           println(cdnProfile)
         }
       }
