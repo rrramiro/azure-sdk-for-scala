@@ -1,6 +1,7 @@
 package fr.ramiro.azure.services.resourceGroups.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import fr.ramiro.azure.Azure
 import fr.ramiro.azure.services.subscriptions.model.Subscription
 
 case class ResourceGroup(
@@ -11,7 +12,9 @@ case class ResourceGroup(
     tags: Map[String, String]
 ) {
   @JsonIgnore
-  var subscription: Subscription = _
+  var subscriptionId: String = _
+  @JsonIgnore
+  var azure: Azure = _
 }
 
 case class ResourceGroupProperties(

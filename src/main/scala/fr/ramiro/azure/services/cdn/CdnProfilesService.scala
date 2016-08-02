@@ -7,13 +7,11 @@ import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model.PageImpl
 import fr.ramiro.azure.services.ListService
 import fr.ramiro.azure.services.cdn.model.CdnProfile
-import fr.ramiro.azure.services.resourceGroups.model.ResourceGroup
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http._
 
-class CdnProfileService(resourceGroup: ResourceGroup) extends ListService[CdnProfile] {
-  val azure: Azure = resourceGroup.subscription.azure
+class CdnProfilesService(azure: Azure, subscriptionId: String, resourceGroupName: String) extends ListService[CdnProfile] {
   override val mapperAdapter = azure.mapperAdapter
   private val cdnProfileServiceInternal = azure.retrofit.create(classOf[CdnProfileServiceInternal])
   override val defaultApiVersion = "2016-04-02"
@@ -22,9 +20,9 @@ class CdnProfileService(resourceGroup: ResourceGroup) extends ListService[CdnPro
 
   override def addParent(child: CdnProfile): CdnProfile = child
 
-  override def listInternal: Call[ResponseBody] = cdnProfileServiceInternal.list(resourceGroup.subscription.subscriptionId, resourceGroup.name, defaultApiVersion)
+  override def listInternal: Call[ResponseBody] = cdnProfileServiceInternal.list(subscriptionId, resourceGroupName, defaultApiVersion)
 
-  override def getInternal(id: String): Call[ResponseBody] = cdnProfileServiceInternal.get(resourceGroup.subscription.subscriptionId, resourceGroup.name, id, defaultApiVersion)
+  override def getInternal(id: String): Call[ResponseBody] = cdnProfileServiceInternal.get(subscriptionId, resourceGroupName, id, defaultApiVersion)
 
   trait CdnProfileServiceInternal {
     @Headers(Array("Content-Type: application/json; charset=utf-8"))

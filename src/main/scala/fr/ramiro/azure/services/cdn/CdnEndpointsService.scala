@@ -11,8 +11,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http._
 
-class CdnEndpointsService(cdnProfile: CdnProfile) extends BaseService[CdnEndpoint] {
-  val azure: Azure = cdnProfile.resourceGroup.subscription.azure
+class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileName: String) extends BaseService[CdnEndpoint] {
   override val mapperAdapter = azure.mapperAdapter
   override def addParent(child: CdnEndpoint): CdnEndpoint = child
 
@@ -29,7 +28,7 @@ class CdnEndpointsService(cdnProfile: CdnProfile) extends BaseService[CdnEndpoin
   }
 
   @throws(classOf[CloudException])
-  def cdnPurge(resourceGroupName: String, profileName: String, endpointName: String, contentPaths: String*): ServiceResponse[Void] = purgeDelegate(
+  def cdnPurge(endpointName: String, contentPaths: String*): ServiceResponse[Void] = purgeDelegate(
     cdnInternal.purge(
       azure.subscriptionId,
       resourceGroupName,
