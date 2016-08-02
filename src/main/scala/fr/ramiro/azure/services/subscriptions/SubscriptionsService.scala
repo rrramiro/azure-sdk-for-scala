@@ -1,71 +1,44 @@
 package fr.ramiro.azure.services.subscriptions
 
+import java.lang.reflect.Type
+
 import com.google.common.reflect.TypeToken
-import com.microsoft.azure.{ CloudException, Page, PagedList }
-import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.PageImpl1
-import fr.ramiro.azure.rest.AzureServiceResponseBuilder
+import fr.ramiro.azure.model.PageImpl
+import fr.ramiro.azure.services.PagedService
 import fr.ramiro.azure.services.subscriptions.model.Subscription
 import okhttp3.ResponseBody
-import retrofit2.{ Call, Response }
+import retrofit2.Call
 import retrofit2.http.{ Url, _ }
 
-class SubscriptionsService(azure: Azure) {
+class SubscriptionsService(val azure: Azure) extends PagedService[Subscription] {
   val subscriptionsInternal = azure.retrofit.create(classOf[SubscriptionsInternal])
-  val defaultApiVersion = "2015-11-01"
-  val defaultAcceptLanguage = "en-US"
-  val defaultUserAgent = s"Azure-SDK-For-Java/${getClass.getPackage.getImplementationVersion} (SubscriptionClient, $defaultApiVersion)"
+  val pagedType: Type = new TypeToken[PageImpl[Subscription]]() {}.getType
+  val getType: Type = new TypeToken[Subscription]() {}.getType
 
-  def get(subscriptionId: String) = {
-    getDelegate(subscriptionsInternal.get(subscriptionId, defaultApiVersion, defaultAcceptLanguage, defaultUserAgent).execute())
-  }
+  override def getInternal(id: String) = subscriptionsInternal.get(id, defaultApiVersion, defaultAcceptLanguage, defaultUserAgent)
 
-  def list = {
-    val response = listDelegate(subscriptionsInternal.list(defaultApiVersion, defaultAcceptLanguage, defaultUserAgent).execute)
-    new ServiceResponse[PagedList[Subscription]](
-      new PagedList[Subscription](response.getBody) {
-        def nextPage(nextPageLink: String): Page[Subscription] = {
-          listNext(nextPageLink).getBody
-        }
-      },
-      response.getResponse
-    )
-  }
+  override def listInternal: Call[ResponseBody] = subscriptionsInternal.list(defaultApiVersion, defaultAcceptLanguage, defaultUserAgent)
 
-  def listNext(nextPageLink: String) = {
-    listNextDelegate(subscriptionsInternal.listNext(nextPageLink, defaultAcceptLanguage, defaultUserAgent).execute)
-  }
+  override def listNextInternal(nextPageLink: String): Call[ResponseBody] = subscriptionsInternal.listNext(nextPageLink, defaultAcceptLanguage, defaultUserAgent)
 
-  private def getDelegate(response: Response[ResponseBody]): ServiceResponse[Subscription] = {
-    new AzureServiceResponseBuilder[Subscription](azure.mapperAdapter, new TypeToken[Subscription]() {}.getType, 200).build(response, addParent)
-  }
-
-  private def addParent(sub: Subscription): Subscription = {
-    sub.azure = azure
-    sub
-  }
-
-  private def listDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl1[Subscription]] = {
-    new AzureServiceResponseBuilder[Subscription](azure.mapperAdapter, new TypeToken[PageImpl1[Subscription]]() {}.getType, 200).buildPaged(response, addParent)
-  }
-
-  private def listNextDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl1[Subscription]] = {
-    new AzureServiceResponseBuilder[Subscription](azure.mapperAdapter, new TypeToken[PageImpl1[Subscription]]() {}.getType, 200).buildPaged(response, addParent)
-  }
+  def addParent(sub: Subscription): Subscription = { sub.azure = azure; sub }
 
   trait SubscriptionsInternal {
     @Headers(Array("Content-Type: application/json; charset=utf-8"))
-    @GET("subscriptions/{subscriptionId}/locations") def listLocations(@Path("subscriptionId") subscriptionId: String, @Query("api-version") apiVersion: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
+    @GET("subscriptions/{subscriptionId}/locations")
+    def listLocations(@Path("subscriptionId") subscriptionId: String, @Query("api-version") apiVersion: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
 
     @Headers(Array("Content-Type: application/json; charset=utf-8"))
-    @GET("subscriptions/{subscriptionId}") def get(@Path("subscriptionId") subscriptionId: String, @Query("api-version") apiVersion: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
+    @GET("subscriptions/{subscriptionId}")
+    def get(@Path("subscriptionId") subscriptionId: String, @Query("api-version") apiVersion: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
 
     @Headers(Array("Content-Type: application/json; charset=utf-8"))
-    @GET("subscriptions") def list(@Query("api-version") apiVersion: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
+    @GET("subscriptions")
+    def list(@Query("api-version") apiVersion: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
 
     @Headers(Array("Content-Type: application/json; charset=utf-8"))
-    @GET def listNext(@Url nextPageLink: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
+    @GET
+    def listNext(@Url nextPageLink: String, @Header("accept-language") acceptLanguage: String, @Header("User-Agent") userAgent: String): Call[ResponseBody]
   }
-
 }

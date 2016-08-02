@@ -7,7 +7,7 @@ import java.lang.reflect.Type
 import com.google.common.reflect.TypeToken
 import com.microsoft.azure.{ CloudError, CloudException }
 import com.microsoft.rest._
-import fr.ramiro.azure.model.PageImpl1
+import fr.ramiro.azure.model.PageImpl
 import okhttp3.ResponseBody
 import retrofit2.Response
 
@@ -30,12 +30,12 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  def buildPaged(response: Response[ResponseBody], convert: T => T): ServiceResponse[PageImpl1[T]] = {
+  def buildPaged(response: Response[ResponseBody], convert: T => T): ServiceResponse[PageImpl[T]] = {
     val statusCode: Int = response.code
     val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
     if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
       val paged = buildBodyPaged(statusCode, responseBody, convert)
-      new ServiceResponse[PageImpl1[T]](paged, response)
+      new ServiceResponse[PageImpl[T]](paged, response)
     } else {
       throw new CloudException("Invalid status code " + statusCode) {
         setResponse(response)
@@ -62,13 +62,13 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  private def buildBodyPaged(statusCode: Int, responseBody: ResponseBody, convert: T => T): PageImpl1[T] = {
+  private def buildBodyPaged(statusCode: Int, responseBody: ResponseBody, convert: T => T): PageImpl[T] = {
     val body = responseBody.string
     responseBody.close()
     if (body.isEmpty) {
       null
     } else {
-      mapperAdapter.deserialize[PageImpl1[T]](body, resultType).updateItems { convert }
+      mapperAdapter.deserialize[PageImpl[T]](body, resultType).updateItems { convert }
     }
   }
 
