@@ -12,8 +12,8 @@ import retrofit2.Call
 import retrofit2.http._
 
 class CdnEndpointsService(cdnProfile: CdnProfile) extends BaseService[CdnEndpoint] {
-  override val azure: Azure = cdnProfile.resourceGroup.subscription.azure
-
+  val azure: Azure = cdnProfile.resourceGroup.subscription.azure
+  override val mapperAdapter = azure.mapperAdapter
   override def addParent(child: CdnEndpoint): CdnEndpoint = child
 
   private case class PurgeRequest(ContentPaths: Seq[String])

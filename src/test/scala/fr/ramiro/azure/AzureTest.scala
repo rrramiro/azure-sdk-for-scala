@@ -9,7 +9,7 @@ import org.scalatest.FunSuite
 import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 
 class AzureTest extends FunSuite {
-  test("subscriptions") {
+  ignore("subscriptions") {
     Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.getBody.asScala.foreach { subscription =>
       println(subscription)
       subscription.resourceGroups.list.getBody.asScala.foreach { resourceGroup =>

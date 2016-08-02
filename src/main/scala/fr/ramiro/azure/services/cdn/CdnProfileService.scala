@@ -13,7 +13,8 @@ import retrofit2.Call
 import retrofit2.http._
 
 class CdnProfileService(resourceGroup: ResourceGroup) extends ListService[CdnProfile] {
-  override val azure: Azure = resourceGroup.subscription.azure
+  val azure: Azure = resourceGroup.subscription.azure
+  override val mapperAdapter = azure.mapperAdapter
   private val cdnProfileServiceInternal = azure.retrofit.create(classOf[CdnProfileServiceInternal])
   override val defaultApiVersion = "2016-04-02"
   override val getType: Type = new TypeToken[CdnProfile]() {}.getType

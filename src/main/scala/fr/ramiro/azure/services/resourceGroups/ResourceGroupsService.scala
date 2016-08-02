@@ -16,6 +16,7 @@ import fr.ramiro.azure.services.resourceGroups.model._
 
 class ResourceGroupsService(subscription: Subscription) extends PagedService[ResourceGroup] {
   val azure = subscription.azure
+  override val mapperAdapter = azure.mapperAdapter
   val resourceGroupsInternal = azure.retrofit.create(classOf[ResourceGroupsInternal])
   val pagedType: Type = new TypeToken[PageImpl[ResourceGroup]]() {}.getType
   val getType: Type = new TypeToken[ResourceGroup]() {}.getType

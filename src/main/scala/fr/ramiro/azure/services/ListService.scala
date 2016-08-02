@@ -29,6 +29,6 @@ trait ListService[T] extends GetService[T] {
   }
 
   private def listDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl[T]] = {
-    new AzureServiceResponseBuilder[T](azure.mapperAdapter, listedType, 200).buildList(response, addParent)
+    new AzureServiceResponseBuilder[T](mapperAdapter, listedType, 200).buildList(response, addParent)
   }
 }

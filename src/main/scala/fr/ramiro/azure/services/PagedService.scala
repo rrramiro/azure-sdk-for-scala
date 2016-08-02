@@ -33,6 +33,6 @@ trait PagedService[T] extends GetService[T] {
   }
 
   private def listDelegate(response: Response[ResponseBody]): ServiceResponse[PageImpl[T]] = {
-    new AzureServiceResponseBuilder[T](azure.mapperAdapter, pagedType, 200).buildPaged(response, addParent)
+    new AzureServiceResponseBuilder[T](mapperAdapter, pagedType, 200).buildPaged(response, addParent)
   }
 }

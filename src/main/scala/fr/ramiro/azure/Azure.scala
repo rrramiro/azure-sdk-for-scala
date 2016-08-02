@@ -16,7 +16,7 @@ import retrofit2.Retrofit
 
 object Azure {
 
-  private class AzureJacksonMapperAdapter extends JacksonMapperAdapter {
+  class AzureJacksonMapperAdapter extends JacksonMapperAdapter {
     override lazy val getObjectMapper: ObjectMapper = new ObjectMapper {
       initializeObjectMapper(this)
       registerModule(FlatteningSerializer.getModule(getSimpleMapper))
