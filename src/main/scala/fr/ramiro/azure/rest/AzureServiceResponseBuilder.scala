@@ -103,8 +103,9 @@ class AzureServiceResponseBuilder[T](
     } else {
       try {
         convert(mapperAdapter.deserialize[T](responseBody.string, resultType))
-      } catch {
-        case e: Throwable => null.asInstanceOf[T]
+        //TODO handle parsing errors
+        //} catch {
+        //case e: Throwable => null.asInstanceOf[T]
       } finally {
         responseBody.close()
       }

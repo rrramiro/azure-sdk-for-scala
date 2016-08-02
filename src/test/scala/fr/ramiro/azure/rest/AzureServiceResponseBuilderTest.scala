@@ -37,6 +37,36 @@ class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
     assert(result.last.name === "{profileName}")
   }
 
+  test("get") {
+    (mockCall.execute _).expects().returns(Response.success[ResponseBody](
+      ResponseBody.create(MediaType.parse("text/plain"), cdnProfile)
+    ))
+    val result = FakeListService.get("{profileName}").getBody
+    assert(result !== null)
+    assert(result.name === "{profileName}")
+  }
+
+  val cdnProfile =
+    """
+      |{
+      |    "id": "/subscriptions/{id}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/Profiles/{profileName}",
+      |    "name": "{profileName}",
+      |    "type": "Microsoft.Cdn/Profiles",
+      |    "location": "East US",
+      |    "tags": {
+      |        "key1": "value1",
+      |        "key2": "value2"
+      |    },
+      |    "sku": {
+      |            "name": "Standard_Verizon|Premium_Verizon|Standard_Akamai"
+      |    },
+      |    "properties": {
+      |        "provisioningState": "Succeeded|InProgress",
+      |        "resourceState": "Active"
+      |    }
+      |}
+    """.stripMargin
+
   val cdnProfileList =
     """
       |{
