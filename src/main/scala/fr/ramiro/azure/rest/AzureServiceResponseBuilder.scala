@@ -30,12 +30,24 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
+  def buildList(response: Response[ResponseBody], convert: T => T): ServiceResponse[PageImpl[T]] = {
+    val statusCode: Int = response.code
+    val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
+    if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
+      new ServiceResponse[PageImpl[T]](buildBodyList(statusCode, responseBody, convert), response)
+    } else {
+      throw new CloudException("Invalid status code " + statusCode) {
+        setResponse(response)
+        setBody(buildError(statusCode, responseBody))
+      }
+    }
+  }
+
   def buildPaged(response: Response[ResponseBody], convert: T => T): ServiceResponse[PageImpl[T]] = {
     val statusCode: Int = response.code
     val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
     if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
-      val paged = buildBodyPaged(statusCode, responseBody, convert)
-      new ServiceResponse[PageImpl[T]](paged, response)
+      new ServiceResponse[PageImpl[T]](buildBodyPaged(statusCode, responseBody, convert), response)
     } else {
       throw new CloudException("Invalid status code " + statusCode) {
         setResponse(response)
@@ -59,6 +71,17 @@ class AzureServiceResponseBuilder[T](
       throw new CloudException("Invalid status code " + statusCode) {
         setResponse(response)
       }
+    }
+  }
+
+  private def buildBodyList(statusCode: Int, responseBody: ResponseBody, convert: T => T): PageImpl[T] = {
+    val body = responseBody.string
+    responseBody.close()
+    if (body.isEmpty) {
+      null
+    } else {
+      val result = mapperAdapter.deserialize[PageImpl[T]](body, resultType).updateItems { convert }
+      result
     }
   }
 

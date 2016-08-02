@@ -5,14 +5,28 @@ import com.microsoft.azure.CloudException
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
 import fr.ramiro.azure.rest.AzureServiceResponseBuilder
+import fr.ramiro.azure.services.BaseService
+import fr.ramiro.azure.services.cdn.model.{ CdnEndpoint, CdnProfile }
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http._
 
-class CdnService(azure: Azure) {
-  val defaultApiVersion = "2016-04-02"
-  val cdnInternal = azure.retrofit.create(classOf[CdnInternal])
-  val purgeStatusCode = 202
+class CdnEndpointsService(cdnProfile: CdnProfile) extends BaseService[CdnEndpoint] {
+  override val azure: Azure = cdnProfile.resourceGroup.subscription.azure
+
+  override def addParent(child: CdnEndpoint): CdnEndpoint = child
+
+  private case class PurgeRequest(ContentPaths: Seq[String])
+
+  val cdnInternal = azure.retrofit.create(classOf[CdnServiceInternal])
+
+  private def purgeDelegate(call: Call[ResponseBody]) = {
+    new AzureServiceResponseBuilder[Void](
+      azure.mapperAdapter,
+      new TypeToken[Void]() {}.getType,
+      202
+    ).build(call.execute(), identity) //TODO replace identity
+  }
 
   @throws(classOf[CloudException])
   def cdnPurge(resourceGroupName: String, profileName: String, endpointName: String, contentPaths: String*): ServiceResponse[Void] = purgeDelegate(
@@ -26,17 +40,7 @@ class CdnService(azure: Azure) {
     )
   )
 
-  private def purgeDelegate(call: Call[ResponseBody]) = {
-    new AzureServiceResponseBuilder[Void](
-      azure.mapperAdapter,
-      new TypeToken[Void]() {}.getType,
-      purgeStatusCode
-    ).build(call.execute(), identity) //TODO replace identity
-  }
-
-  private case class PurgeRequest(ContentPaths: Seq[String])
-
-  trait CdnInternal {
+  trait CdnServiceInternal {
     /**
      * @param subscriptionId	Azure Subscription ID.
      * @param resourceGroupName	Name of the resource group within the Azure subscription.
@@ -55,4 +59,5 @@ class CdnService(azure: Azure) {
       @Body purgeParam: PurgeRequest
     ): Call[ResponseBody]
   }
+
 }

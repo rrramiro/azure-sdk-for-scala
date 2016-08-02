@@ -14,7 +14,10 @@ case class ResourceGroup(
   var subscription: Subscription = _
 }
 
-case class ResourceGroupProperties(provisioningState: String)
+case class ResourceGroupProperties(
+  provisioningState: String,
+  resourceState: String
+)
 
 case class ExportTemplateRequestInner(
   resources: Seq[String],
