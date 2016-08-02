@@ -25,25 +25,23 @@ class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
   }
 
   test("list") {
-    (mockCall.execute _).expects().returns(Response.success[ResponseBody](
-      ResponseBody.create(MediaType.parse("text/plain"), cdnProfileList)
-    ))
-
+    (mockCall.execute _).expects().returns(createSuccessResponse(cdnProfileList))
     val result = FakeListService.list.getBody
-
     assert(result.size === 2)
     assert(result.head.name === "{profileName}")
     assert(result.last.name === "{profileName}")
   }
 
   test("get") {
-    (mockCall.execute _).expects().returns(Response.success[ResponseBody](
-      ResponseBody.create(MediaType.parse("text/plain"), cdnProfile)
-    ))
+    (mockCall.execute _).expects().returns(createSuccessResponse(cdnProfile))
     val result = FakeListService.get("{profileName}").getBody
     assert(result !== null)
     assert(result.name === "{profileName}")
   }
+
+  private def createSuccessResponse(content: String) = Response.success[ResponseBody](
+    ResponseBody.create(MediaType.parse("application/json"), content)
+  )
 
   val cdnProfile =
     """
