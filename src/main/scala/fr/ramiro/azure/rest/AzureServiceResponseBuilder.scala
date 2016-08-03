@@ -1,20 +1,20 @@
 package fr.ramiro.azure.rest
 
-import com.microsoft.rest.serializer.JacksonMapperAdapter
 import java.io.InputStream
 import java.lang.reflect.Type
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.reflect.TypeToken
-import com.microsoft.azure.{ CloudError, CloudException }
+import com.microsoft.azure.{CloudError, CloudException}
 import com.microsoft.rest._
-import fr.ramiro.azure.model.{ ListResponse, PageImpl }
+import fr.ramiro.azure.model.{ListResponse, PageImpl}
 import okhttp3.ResponseBody
 import retrofit2.Response
 
 class AzureServiceResponseBuilder[T](
-    mapperAdapter: JacksonMapperAdapter,
-    resultType: Type,
-    expectedStatusCode: Int*
+  mapperAdapter: ObjectMapper,
+  resultType: Type,
+  expectedStatusCode: Int*
 ) {
 
   def build(response: Response[ResponseBody], convert: T => T): ServiceResponse[T] = {
