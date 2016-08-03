@@ -1,11 +1,12 @@
 package fr.ramiro.azure.services
 
-import com.microsoft.azure.{ Page, PagedList }
+import com.microsoft.azure.{ CloudException, Page, PagedList }
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.model.PageImpl
 import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import okhttp3.ResponseBody
 import retrofit2.{ Call, Response }
+
 import scala.reflect.ClassTag
 
 trait PagedService[T] extends GetService[T] {
@@ -31,6 +32,20 @@ trait PagedService[T] extends GetService[T] {
   }
 
   private def listDelegate(response: Response[ResponseBody])(implicit classTag: ClassTag[T]): ServiceResponse[PageImpl[T]] = {
-    new AzureServiceResponseBuilder[T](objectMapper, 200).buildPaged(response, addParent)
+    if (response.isSuccessful) {
+      new ServiceResponse[PageImpl[T]](buildBodyPaged(response.body), response)
+    } else {
+      throw createCloudException(response)
+    }
+  }
+
+  private def buildBodyPaged(responseBody: ResponseBody)(implicit classTag: ClassTag[T]): PageImpl[T] = {
+    try {
+      val typeResult = objectMapper.getTypeFactory.constructParametricType(classOf[PageImpl[T]], classTag.runtimeClass)
+      val result = objectMapper.readValue(responseBody.string, typeResult).asInstanceOf[PageImpl[T]]
+      result.updateItems { addParent }
+    } finally {
+      responseBody.close()
+    }
   }
 }

@@ -2,9 +2,9 @@ package fr.ramiro.azure.services
 
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.model.ListResponse
-import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import okhttp3.ResponseBody
 import retrofit2.{ Call, Response }
+
 import scala.reflect.ClassTag
 
 trait ListService[T] extends GetService[T] {
@@ -20,6 +20,20 @@ trait ListService[T] extends GetService[T] {
   }
 
   private def listDelegate(response: Response[ResponseBody])(implicit classTag: ClassTag[T]): ServiceResponse[ListResponse[T]] = {
-    new AzureServiceResponseBuilder[T](objectMapper, 200).buildList(response, addParent)
+    if (response.isSuccessful) {
+      new ServiceResponse[ListResponse[T]](buildBodyList(response.body), response)
+    } else {
+      throw createCloudException(response)
+    }
+  }
+
+  private def buildBodyList(responseBody: ResponseBody)(implicit classTag: ClassTag[T]): ListResponse[T] = {
+    try {
+      val typeResult = objectMapper.getTypeFactory.constructParametricType(classOf[ListResponse[T]], classTag.runtimeClass)
+      val result = objectMapper.readValue(responseBody.string, typeResult).asInstanceOf[ListResponse[T]]
+      result.copy(value = result.value.map { addParent })
+    } finally {
+      responseBody.close()
+    }
   }
 }
