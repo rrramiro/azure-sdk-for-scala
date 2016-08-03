@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
 class DeserializeTest extends FunSuite {
   val objectMapper = Azure.objectMapper
 
-  val builder = new AzureServiceResponseBuilder(Azure.objectMapper, null)
+  val builder = new AzureServiceResponseBuilder(Azure.objectMapper)
   test("deserializeList") {
     val result: ListResponse[CdnProfile] = builder.deserializeList[CdnProfile](cdnProfileList)
     assert(result.value.size == 2)

@@ -1,7 +1,5 @@
 package fr.ramiro.azure.rest
 
-import java.lang.reflect.Type
-
 import fr.ramiro.azure.Azure
 import fr.ramiro.azure.services.ListService
 import fr.ramiro.azure.services.cdn.model.CdnProfile
@@ -15,7 +13,6 @@ class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
 
   object FakeListService extends ListService[CdnProfile] {
     override val objectMapper = Azure.objectMapper
-    override val getType: Type = classOf[CdnProfile]
     override val listInternal: Call[ResponseBody] = mockCall
     override def getInternal(id: String): Call[ResponseBody] = mockCall
     override def addParent(child: CdnProfile): CdnProfile = child

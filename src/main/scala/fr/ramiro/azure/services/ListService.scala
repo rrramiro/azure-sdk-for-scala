@@ -1,13 +1,10 @@
 package fr.ramiro.azure.services
 
-import java.lang.reflect.Type
-
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.model.ListResponse
 import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import okhttp3.ResponseBody
 import retrofit2.{ Call, Response }
-
 import scala.reflect.ClassTag
 
 trait ListService[T] extends GetService[T] {
@@ -23,6 +20,6 @@ trait ListService[T] extends GetService[T] {
   }
 
   private def listDelegate(response: Response[ResponseBody])(implicit classTag: ClassTag[T]): ServiceResponse[ListResponse[T]] = {
-    new AzureServiceResponseBuilder[T](objectMapper, null, 200).buildList(response, addParent)
+    new AzureServiceResponseBuilder[T](objectMapper, 200).buildList(response, addParent)
   }
 }

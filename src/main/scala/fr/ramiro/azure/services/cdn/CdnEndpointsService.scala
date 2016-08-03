@@ -1,12 +1,11 @@
 package fr.ramiro.azure.services.cdn
 
-import com.google.common.reflect.TypeToken
 import com.microsoft.azure.CloudException
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
 import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import fr.ramiro.azure.services.BaseService
-import fr.ramiro.azure.services.cdn.model.{ CdnEndpoint, CdnProfile }
+import fr.ramiro.azure.services.cdn.model.CdnEndpoint
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http._
@@ -22,12 +21,10 @@ class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileNa
   private def purgeDelegate(call: Call[ResponseBody]) = {
     new AzureServiceResponseBuilder[Void](
       objectMapper,
-      new TypeToken[Void]() {}.getType,
       202
     ).build(call.execute(), identity) //TODO replace identity
   }
 
-  @throws(classOf[CloudException])
   def cdnPurge(endpointName: String, contentPaths: String*): ServiceResponse[Void] = purgeDelegate(
     cdnInternal.purge(
       azure.subscriptionId,

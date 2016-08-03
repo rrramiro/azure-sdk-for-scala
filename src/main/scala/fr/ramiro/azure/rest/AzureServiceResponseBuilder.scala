@@ -1,7 +1,6 @@
 package fr.ramiro.azure.rest
 
 import java.io.InputStream
-import java.lang.reflect.Type
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.reflect.TypeToken
@@ -10,17 +9,14 @@ import com.microsoft.rest._
 import fr.ramiro.azure.model.{ ListResponse, PageImpl }
 import okhttp3.ResponseBody
 import retrofit2.Response
-import com.fasterxml.jackson.core.`type`.TypeReference
 import scala.reflect.ClassTag
 
-//TODO remove resultType
 class AzureServiceResponseBuilder[T](
     objectMapper: ObjectMapper,
-    resultType: Type,
     expectedStatusCode: Int*
 ) {
 
-  def build(response: Response[ResponseBody], convert: T => T): ServiceResponse[T] = {
+  def build(response: Response[ResponseBody], convert: T => T)(implicit classTag: ClassTag[T]): ServiceResponse[T] = {
     val statusCode: Int = response.code
     val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
     if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
@@ -46,7 +42,7 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  def buildPaged(response: Response[ResponseBody], convert: T => T): ServiceResponse[PageImpl[T]] = {
+  def buildPaged(response: Response[ResponseBody], convert: T => T)(implicit classTag: ClassTag[T]): ServiceResponse[PageImpl[T]] = {
     val statusCode: Int = response.code
     val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
     if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
@@ -87,24 +83,24 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  private def buildBodyPaged(statusCode: Int, responseBody: ResponseBody, convert: T => T): PageImpl[T] = {
+  private def buildBodyPaged(statusCode: Int, responseBody: ResponseBody, convert: T => T)(implicit classTag: ClassTag[T]): PageImpl[T] = {
     val body = responseBody.string
     responseBody.close()
     if (body.isEmpty) {
       null
     } else {
-      deserialize[PageImpl[T]](body, resultType).updateItems { convert }
+      deserializePagedList[T](body).updateItems { convert }
     }
   }
 
-  private def buildBody(statusCode: Int, responseBody: ResponseBody, convert: T => T): T = {
-    if (resultType eq classOf[Void]) {
+  private def buildBody(statusCode: Int, responseBody: ResponseBody, convert: T => T)(implicit classTag: ClassTag[T]): T = {
+    if (classTag.runtimeClass eq classOf[Void]) {
       null.asInstanceOf[T]
-    } else if (resultType eq classOf[InputStream]) {
+    } else if (classTag.runtimeClass eq classOf[InputStream]) {
       responseBody.byteStream.asInstanceOf[T]
     } else {
       try {
-        convert(deserialize[T](responseBody.string, resultType))
+        convert(deserialize[T](responseBody.string))
         //TODO handle parsing errors
         //} catch {
         //case e: Throwable => null.asInstanceOf[T]
@@ -116,7 +112,7 @@ class AzureServiceResponseBuilder[T](
 
   private def buildError(statusCode: Int, responseBody: ResponseBody): CloudError = {
     try {
-      deserialize(responseBody.string, classOf[CloudError])
+      deserialize(responseBody.string)
     } catch {
       case e: Throwable => new CloudError
     } finally {
@@ -124,10 +120,13 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  private def deserialize[U](json: String, resultType: Type): U = {
-    objectMapper.readValue(json, new TypeReference[U]() {
-      override def getType: Type = resultType
-    }).asInstanceOf[U]
+  private def deserialize[U](json: String)(implicit classTag: ClassTag[U]): U = {
+    objectMapper.readValue(json, classTag.runtimeClass).asInstanceOf[U]
+  }
+
+  def deserializePagedList[T](body: String)(implicit classTag: ClassTag[T]): PageImpl[T] = {
+    val typeResult = objectMapper.getTypeFactory.constructParametricType(classOf[PageImpl[T]], classTag.runtimeClass)
+    objectMapper.readValue(body, typeResult).asInstanceOf[PageImpl[T]]
   }
 
   def deserializeList[T](body: String)(implicit classTag: ClassTag[T]): ListResponse[T] = {
