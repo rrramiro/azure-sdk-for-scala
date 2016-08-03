@@ -1,14 +1,13 @@
-package fr.ramiro.azure.rest
+package fr.ramiro.azure.services
 
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.services.ListService
 import fr.ramiro.azure.services.cdn.model.CdnProfile
-import okhttp3.{ MediaType, ResponseBody }
+import okhttp3.ResponseBody
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FunSuite
-import retrofit2.{ Call, Response }
+import retrofit2.Call
 
-class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
+class ListServiceTest extends FunSuite with MockFactory with ServicesFixture {
   val mockCall = mock[Call[ResponseBody]]
 
   object FakeListService extends ListService[CdnProfile] {
@@ -32,10 +31,6 @@ class AzureServiceResponseBuilderTest extends FunSuite with MockFactory {
     assert(result !== null)
     assert(result.name === "{profileName}")
   }
-
-  private def createSuccessResponse(content: String) = Response.success[ResponseBody](
-    ResponseBody.create(MediaType.parse("application/json"), content)
-  )
 
   val cdnProfile =
     """
