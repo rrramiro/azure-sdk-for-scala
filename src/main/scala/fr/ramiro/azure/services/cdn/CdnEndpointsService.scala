@@ -1,13 +1,11 @@
 package fr.ramiro.azure.services.cdn
 
-import com.microsoft.azure.CloudException
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import fr.ramiro.azure.services.BaseService
 import fr.ramiro.azure.services.cdn.model.CdnEndpoint
 import okhttp3.ResponseBody
-import retrofit2.Call
+import retrofit2.{ Call, Response }
 import retrofit2.http._
 
 class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileName: String) extends BaseService[CdnEndpoint] {
@@ -18,14 +16,11 @@ class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileNa
 
   val cdnInternal = azure.retrofit.create(classOf[CdnServiceInternal])
 
-  private def purgeDelegate(call: Call[ResponseBody]) = {
-    new AzureServiceResponseBuilder[Void](
-      objectMapper,
-      202
-    ).build(call.execute(), identity) //TODO replace identity
+  private def purgeDelegate(response: Response[ResponseBody]) = {
+    createServiceResponse(response, _ => response.code() == 202)
   }
 
-  def cdnPurge(endpointName: String, contentPaths: String*): ServiceResponse[Void] = purgeDelegate(
+  def cdnPurge(endpointName: String, contentPaths: String*): ServiceResponse[Boolean] = purgeDelegate(
     cdnInternal.purge(
       azure.subscriptionId,
       resourceGroupName,
@@ -33,7 +28,7 @@ class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileNa
       endpointName,
       defaultApiVersion,
       new PurgeRequest(contentPaths)
-    )
+    ).execute()
   )
 
   trait CdnServiceInternal {
