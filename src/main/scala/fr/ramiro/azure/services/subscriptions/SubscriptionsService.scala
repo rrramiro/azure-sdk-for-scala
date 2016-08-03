@@ -12,7 +12,7 @@ import retrofit2.Call
 import retrofit2.http.{ Url, _ }
 
 class SubscriptionsService(val azure: Azure) extends PagedService[Subscription] {
-  override val mapperAdapter = azure.objectMapper
+  override val objectMapper = azure.objectMapper
   val subscriptionsInternal = azure.retrofit.create(classOf[SubscriptionsInternal])
   val pagedType: Type = new TypeToken[PageImpl[Subscription]]() {}.getType
   val getType: Type = new TypeToken[Subscription]() {}.getType

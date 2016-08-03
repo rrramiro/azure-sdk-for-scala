@@ -5,16 +5,19 @@ import java.lang.reflect.Type
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.reflect.TypeToken
-import com.microsoft.azure.{CloudError, CloudException}
+import com.microsoft.azure.{ CloudError, CloudException }
 import com.microsoft.rest._
-import fr.ramiro.azure.model.{ListResponse, PageImpl}
+import fr.ramiro.azure.model.{ ListResponse, PageImpl }
 import okhttp3.ResponseBody
 import retrofit2.Response
+import com.fasterxml.jackson.core.`type`.TypeReference
+import scala.reflect.ClassTag
 
+//TODO remove resultType
 class AzureServiceResponseBuilder[T](
-  mapperAdapter: ObjectMapper,
-  resultType: Type,
-  expectedStatusCode: Int*
+    objectMapper: ObjectMapper,
+    resultType: Type,
+    expectedStatusCode: Int*
 ) {
 
   def build(response: Response[ResponseBody], convert: T => T): ServiceResponse[T] = {
@@ -30,7 +33,7 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  def buildList(response: Response[ResponseBody], convert: T => T): ServiceResponse[ListResponse[T]] = {
+  def buildList(response: Response[ResponseBody], convert: T => T)(implicit classTag: ClassTag[T]): ServiceResponse[ListResponse[T]] = {
     val statusCode: Int = response.code
     val responseBody: ResponseBody = if (response.isSuccessful) { response.body } else { response.errorBody }
     if (expectedStatusCode.contains(statusCode) || response.isSuccessful) {
@@ -73,13 +76,13 @@ class AzureServiceResponseBuilder[T](
     }
   }
 
-  private def buildBodyList(statusCode: Int, responseBody: ResponseBody, convert: T => T): ListResponse[T] = {
+  private def buildBodyList(statusCode: Int, responseBody: ResponseBody, convert: T => T)(implicit classTag: ClassTag[T]): ListResponse[T] = {
     val body = responseBody.string
     responseBody.close()
     if (body.isEmpty) {
       null
     } else {
-      val result = mapperAdapter.deserialize[ListResponse[T]](body, resultType)
+      val result = deserializeList[T](body)
       result.copy(value = result.value.map { convert })
     }
   }
@@ -90,7 +93,7 @@ class AzureServiceResponseBuilder[T](
     if (body.isEmpty) {
       null
     } else {
-      mapperAdapter.deserialize[PageImpl[T]](body, resultType).updateItems { convert }
+      deserialize[PageImpl[T]](body, resultType).updateItems { convert }
     }
   }
 
@@ -101,7 +104,7 @@ class AzureServiceResponseBuilder[T](
       responseBody.byteStream.asInstanceOf[T]
     } else {
       try {
-        convert(mapperAdapter.deserialize[T](responseBody.string, resultType))
+        convert(deserialize[T](responseBody.string, resultType))
         //TODO handle parsing errors
         //} catch {
         //case e: Throwable => null.asInstanceOf[T]
@@ -113,11 +116,23 @@ class AzureServiceResponseBuilder[T](
 
   private def buildError(statusCode: Int, responseBody: ResponseBody): CloudError = {
     try {
-      mapperAdapter.deserialize(responseBody.string, classOf[CloudError])
+      deserialize(responseBody.string, classOf[CloudError])
     } catch {
       case e: Throwable => new CloudError
     } finally {
       responseBody.close()
     }
   }
+
+  private def deserialize[U](json: String, resultType: Type): U = {
+    objectMapper.readValue(json, new TypeReference[U]() {
+      override def getType: Type = resultType
+    }).asInstanceOf[U]
+  }
+
+  def deserializeList[T](body: String)(implicit classTag: ClassTag[T]): ListResponse[T] = {
+    val typeResult = objectMapper.getTypeFactory.constructParametricType(classOf[ListResponse[T]], classTag.runtimeClass)
+    objectMapper.readValue(body, typeResult).asInstanceOf[ListResponse[T]]
+  }
+
 }

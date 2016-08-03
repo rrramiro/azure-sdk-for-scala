@@ -12,7 +12,7 @@ import retrofit2.Call
 import retrofit2.http._
 
 class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileName: String) extends BaseService[CdnEndpoint] {
-  override val mapperAdapter = azure.mapperAdapter
+  override val objectMapper = azure.objectMapper
   override def addParent(child: CdnEndpoint): CdnEndpoint = child
 
   private case class PurgeRequest(ContentPaths: Seq[String])
@@ -21,7 +21,7 @@ class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileNa
 
   private def purgeDelegate(call: Call[ResponseBody]) = {
     new AzureServiceResponseBuilder[Void](
-      azure.mapperAdapter,
+      objectMapper,
       new TypeToken[Void]() {}.getType,
       202
     ).build(call.execute(), identity) //TODO replace identity

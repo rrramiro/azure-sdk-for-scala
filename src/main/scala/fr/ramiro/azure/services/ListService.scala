@@ -8,12 +8,13 @@ import fr.ramiro.azure.rest.AzureServiceResponseBuilder
 import okhttp3.ResponseBody
 import retrofit2.{ Call, Response }
 
+import scala.reflect.ClassTag
+
 trait ListService[T] extends GetService[T] {
-  val listedType: Type
 
   def listInternal: Call[ResponseBody]
 
-  def list: ServiceResponse[Seq[T]] = {
+  def list(implicit classTag: ClassTag[T]): ServiceResponse[Seq[T]] = {
     val response = listDelegate(listInternal.execute)
     new ServiceResponse[Seq[T]](
       response.getBody.value,
@@ -21,7 +22,7 @@ trait ListService[T] extends GetService[T] {
     )
   }
 
-  private def listDelegate(response: Response[ResponseBody]): ServiceResponse[ListResponse[T]] = {
-    new AzureServiceResponseBuilder[T](mapperAdapter, listedType, 200).buildList(response, addParent)
+  private def listDelegate(response: Response[ResponseBody])(implicit classTag: ClassTag[T]): ServiceResponse[ListResponse[T]] = {
+    new AzureServiceResponseBuilder[T](objectMapper, null, 200).buildList(response, addParent)
   }
 }

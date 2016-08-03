@@ -1,17 +1,17 @@
 package fr.ramiro.azure
 
-import java.net.{CookieManager, CookiePolicy}
+import java.net.{ CookieManager, CookiePolicy }
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.microsoft.azure.serializer.CloudErrorDeserializer
-import com.microsoft.azure.{RequestIdHeaderInterceptor, ResourceGetExponentialBackoffRetryStrategy}
-import com.microsoft.rest.{BaseUrlHandler, UserAgentInterceptor}
+import com.microsoft.azure.{ RequestIdHeaderInterceptor, ResourceGetExponentialBackoffRetryStrategy }
+import com.microsoft.rest.{ BaseUrlHandler, UserAgentInterceptor }
 import com.microsoft.rest.credentials.TokenCredentialsInterceptor
 import com.microsoft.rest.retry.RetryHandler
-import com.microsoft.rest.serializer.{FlatteningDeserializer, FlatteningSerializer, JacksonConverterFactory, JacksonMapperAdapter}
+import com.microsoft.rest.serializer.{ FlatteningDeserializer, FlatteningSerializer, JacksonConverterFactory, JacksonMapperAdapter }
 import okhttp3.logging.HttpLoggingInterceptor
-import okhttp3.{JavaNetCookieJar, OkHttpClient}
+import okhttp3.{ JavaNetCookieJar, OkHttpClient }
 import retrofit2.Retrofit
 
 object Azure {
@@ -40,8 +40,6 @@ object Azure {
       .addInterceptor(new RetryHandler())
       .addInterceptor(new BaseUrlHandler)
       .addInterceptor(new HttpLoggingInterceptor().setLevel(logLevel)).build()
-
-
 
     val retrofit: Retrofit = (new Retrofit.Builder).baseUrl(credential.baseUrl)
       .client(httpClient)

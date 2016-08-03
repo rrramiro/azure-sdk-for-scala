@@ -17,6 +17,6 @@ trait GetService[T] extends BaseService[T] {
   }
 
   private def getDelegate(response: Response[ResponseBody]): ServiceResponse[T] = {
-    new AzureServiceResponseBuilder[T](mapperAdapter, getType, 200).build(response, addParent)
+    new AzureServiceResponseBuilder[T](objectMapper, getType, 200).build(response, addParent)
   }
 }
