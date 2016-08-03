@@ -4,7 +4,7 @@ import java.lang.reflect.Type
 
 import com.google.common.reflect.TypeToken
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.PageImpl
+import fr.ramiro.azure.model.PageResponse
 import fr.ramiro.azure.services.PagedService
 import fr.ramiro.azure.services.subscriptions.model.Subscription
 import okhttp3.ResponseBody
@@ -14,7 +14,7 @@ import retrofit2.http.{ Url, _ }
 class SubscriptionsService(val azure: Azure) extends PagedService[Subscription] {
   override val objectMapper = azure.objectMapper
   val subscriptionsInternal = azure.retrofit.create(classOf[SubscriptionsInternal])
-  val pagedType: Type = new TypeToken[PageImpl[Subscription]]() {}.getType
+  val pagedType: Type = new TypeToken[PageResponse[Subscription]]() {}.getType
   val getType: Type = new TypeToken[Subscription]() {}.getType
 
   override def getInternal(id: String) = subscriptionsInternal.get(id, defaultApiVersion, defaultAcceptLanguage, defaultUserAgent)

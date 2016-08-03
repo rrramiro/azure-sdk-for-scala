@@ -10,9 +10,9 @@ import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 
 class AzureTest extends FunSuite {
   test("subscriptions") {
-    Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.getBody.asScala.foreach { subscription =>
+    Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.getBody.foreach { subscription =>
       println(subscription)
-      subscription.resourceGroups.list.getBody.asScala.foreach { resourceGroup =>
+      subscription.resourceGroups.list.getBody.foreach { resourceGroup =>
         println(resourceGroup)
         resourceGroup.cdnProfiles.list.getBody.foreach { cdnProfile =>
           println(cdnProfile)

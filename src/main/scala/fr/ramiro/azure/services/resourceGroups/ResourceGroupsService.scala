@@ -4,7 +4,7 @@ import java.lang.reflect.Type
 
 import com.google.common.reflect.TypeToken
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.PageImpl
+import fr.ramiro.azure.model.PageResponse
 import fr.ramiro.azure.services.PagedService
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -14,7 +14,7 @@ import fr.ramiro.azure.services.resourceGroups.model._
 class ResourceGroupsService(azure: Azure, subscriptionId: String) extends PagedService[ResourceGroup] {
   override val objectMapper = azure.objectMapper
   val resourceGroupsInternal = azure.retrofit.create(classOf[ResourceGroupsInternal])
-  val pagedType: Type = new TypeToken[PageImpl[ResourceGroup]]() {}.getType
+  val pagedType: Type = new TypeToken[PageResponse[ResourceGroup]]() {}.getType
   val getType: Type = new TypeToken[ResourceGroup]() {}.getType
 
   override def listInternal: Call[ResponseBody] = resourceGroupsInternal.list(subscriptionId, null, null, defaultApiVersion, defaultAcceptLanguage, defaultUserAgent)

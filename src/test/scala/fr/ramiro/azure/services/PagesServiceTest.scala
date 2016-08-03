@@ -22,7 +22,7 @@ class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
   test("paged") {
     (mockCall.execute _).expects().returns(createSuccessResponse(resourceGroupFirstPage))
     (mockCall.execute _).expects().returns(createSuccessResponse(resourceGroupLastPage))
-    val result = FakePagedService.list.getBody.asScala
+    val result = FakePagedService.list.getBody
     assert(result.size === 2)
     assert(result.head.name === "myresourcegroup1")
     assert(result.last.name === "myresourcegroup2")
