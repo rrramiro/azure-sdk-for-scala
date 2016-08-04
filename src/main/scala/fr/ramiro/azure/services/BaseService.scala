@@ -1,8 +1,9 @@
 package fr.ramiro.azure.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.azure.{ CloudError, CloudException }
+import com.microsoft.azure.CloudError
 import com.microsoft.rest.ServiceResponse
+import fr.ramiro.azure.model.CloudException
 import okhttp3.ResponseBody
 import retrofit2.Response
 
@@ -15,10 +16,7 @@ trait BaseService[T] {
   def addParent(child: T): T
 
   def createCloudException(response: Response[ResponseBody]): CloudException = {
-    new CloudException("Invalid status code " + response.code) {
-      setResponse(response)
-      setBody(buildCloudError(response.code, response.errorBody))
-    }
+    new CloudException("Invalid status code " + response.code, buildCloudError(response.code, response.errorBody), response)
   }
 
   def createServiceResponse[U](response: Response[ResponseBody], buildBody: (String) => U): ServiceResponse[U] = {
@@ -29,7 +27,10 @@ trait BaseService[T] {
         throw createCloudException(response)
       }
     } finally {
-      response.body().close()
+      Option(response.body()) match {
+        case Some(body) => body.close()
+        case _ =>
+      }
     }
   }
 

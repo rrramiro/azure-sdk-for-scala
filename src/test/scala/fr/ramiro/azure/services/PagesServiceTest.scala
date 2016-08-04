@@ -1,13 +1,11 @@
 package fr.ramiro.azure.services
 
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.ResourceGroup
+import fr.ramiro.azure.model.{ CloudException, ResourceGroup }
 import okhttp3.ResponseBody
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FunSuite
 import retrofit2.Call
-
-import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 
 class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
   val mockCall = mock[Call[ResponseBody]]
@@ -20,7 +18,7 @@ class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
     override def addParent(child: ResourceGroup): ResourceGroup = child
   }
 
-  test("paged") {
+  test("2 page success") {
     (mockCall.execute _).expects().returns(createSuccessResponse(resourceGroupFirstPage))
     (mockCall.execute _).expects().returns(createSuccessResponse(resourceGroupLastPage))
     val result = FakePagedService.list.getBody
@@ -28,6 +26,52 @@ class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
     assert(result.head.name === "myresourcegroup1")
     assert(result.last.name === "myresourcegroup2")
   }
+
+  //  test("empty result"){
+  //    (mockCall.execute _).expects().returns(createSuccessResponse(""))
+  //    FakePagedService.list.getBody
+  //  }
+
+  test("error") {
+    (mockCall.execute _).expects().returns(createErrorResponse(jsonError))
+    val caught = intercept[CloudException] {
+      FakePagedService.list.getBody
+    }
+    assert(caught.getMessage === "Invalid status code 404")
+  }
+
+  test("error empty") {
+    (mockCall.execute _).expects().returns(createErrorResponse(""))
+    val caught = intercept[CloudException] {
+      FakePagedService.list.getBody
+    }
+    assert(caught.getMessage === "Invalid status code 404")
+  }
+
+  test("error null") {
+    (mockCall.execute _).expects().returns(createErrorResponse(null))
+    val caught = intercept[CloudException] {
+      FakePagedService.list.getBody
+    }
+    assert(caught.getMessage === "Invalid status code 404")
+  }
+
+  val jsonError =
+    """
+      |{
+      |  "Code": "NotFound",
+      |  "Message": "Cannot find XXX.",
+      |  "Target": null,
+      |  "Details": [
+      |    {
+      |      "Message": "Cannot find XXX."
+      |    },
+      |    {
+      |      "Code": "NotFound"
+      |    }
+      |  ]
+      |}
+    """.stripMargin
 
   val resourceGroupFirstPage =
     """
