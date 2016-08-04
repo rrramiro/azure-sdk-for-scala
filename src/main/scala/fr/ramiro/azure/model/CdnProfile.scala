@@ -1,7 +1,7 @@
-package fr.ramiro.azure.services.cdn.model
+package fr.ramiro.azure.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import fr.ramiro.azure.services.resourceGroups.model.{ ResourceGroup, ResourceGroupProperties }
+import fr.ramiro.azure.Azure
 
 case class CdnProfile(
     id: String,
@@ -13,9 +13,9 @@ case class CdnProfile(
 //sku : Map[String, String]
 ) {
   @JsonIgnore
-  var resourceGroup: ResourceGroup = _
-}
-
-class CdnEndpoint {
-
+  var subscriptionId: String = _
+  @JsonIgnore
+  var resourceGroupName: String = _
+  @JsonIgnore
+  var azure: Azure = _
 }

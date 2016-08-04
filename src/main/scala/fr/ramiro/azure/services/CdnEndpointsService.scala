@@ -1,16 +1,22 @@
-package fr.ramiro.azure.services.cdn
+package fr.ramiro.azure.services
 
 import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.services.BaseService
-import fr.ramiro.azure.services.cdn.model.CdnEndpoint
+import fr.ramiro.azure.model.CdnEndpoint
 import okhttp3.ResponseBody
-import retrofit2.{ Call, Response }
 import retrofit2.http._
+import retrofit2.{ Call, Response }
 
-class CdnEndpointsService(val azure: Azure, resourceGroupName: String, profileName: String) extends BaseService[CdnEndpoint] {
+class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupName: String, profileName: String) extends BaseService[CdnEndpoint] {
   override val objectMapper = azure.objectMapper
-  override def addParent(child: CdnEndpoint): CdnEndpoint = child
+
+  override def addParent(child: CdnEndpoint): CdnEndpoint = {
+    child.azure = azure
+    child.subscriptionId = subscriptionId
+    child.resourceGroupName = resourceGroupName
+    child.profileName = profileName
+    child
+  }
 
   private case class PurgeRequest(ContentPaths: Seq[String])
 

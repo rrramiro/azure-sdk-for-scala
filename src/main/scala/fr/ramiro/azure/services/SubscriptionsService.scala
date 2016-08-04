@@ -1,17 +1,15 @@
-package fr.ramiro.azure.services.subscriptions
+package fr.ramiro.azure.services
 
 import java.lang.reflect.Type
 
 import com.google.common.reflect.TypeToken
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.PageResponse
-import fr.ramiro.azure.services.PagedService
-import fr.ramiro.azure.services.subscriptions.model.Subscription
+import fr.ramiro.azure.model.{ PageResponse, Subscription }
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.{ Url, _ }
 
-class SubscriptionsService(val azure: Azure) extends PagedService[Subscription] {
+class SubscriptionsService(azure: Azure) extends PagedService[Subscription] {
   override val objectMapper = azure.objectMapper
   val subscriptionsInternal = azure.retrofit.create(classOf[SubscriptionsInternal])
   val pagedType: Type = new TypeToken[PageResponse[Subscription]]() {}.getType
@@ -23,7 +21,10 @@ class SubscriptionsService(val azure: Azure) extends PagedService[Subscription] 
 
   override def listNextInternal(nextPageLink: String): Call[ResponseBody] = subscriptionsInternal.listNext(nextPageLink, defaultAcceptLanguage, defaultUserAgent)
 
-  def addParent(sub: Subscription): Subscription = { sub.azure = azure; sub }
+  def addParent(child: Subscription): Subscription = {
+    child.azure = azure
+    child
+  }
 
   trait SubscriptionsInternal {
     @Headers(Array("Content-Type: application/json; charset=utf-8"))

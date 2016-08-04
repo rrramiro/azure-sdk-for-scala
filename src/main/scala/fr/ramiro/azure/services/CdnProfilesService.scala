@@ -1,8 +1,7 @@
-package fr.ramiro.azure.services.cdn
+package fr.ramiro.azure.services
 
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.services.ListService
-import fr.ramiro.azure.services.cdn.model.CdnProfile
+import fr.ramiro.azure.model.{ CdnProfile, ResourceGroup }
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http._
@@ -12,7 +11,12 @@ class CdnProfilesService(azure: Azure, subscriptionId: String, resourceGroupName
   private val cdnProfileServiceInternal = azure.retrofit.create(classOf[CdnProfileServiceInternal])
   override val defaultApiVersion = "2016-04-02"
 
-  override def addParent(child: CdnProfile): CdnProfile = child
+  override def addParent(child: CdnProfile): CdnProfile = {
+    child.azure = azure
+    child.subscriptionId = subscriptionId
+    child.resourceGroupName = child.resourceGroupName
+    child
+  }
 
   override def listInternal: Call[ResponseBody] = cdnProfileServiceInternal.list(subscriptionId, resourceGroupName, defaultApiVersion)
 

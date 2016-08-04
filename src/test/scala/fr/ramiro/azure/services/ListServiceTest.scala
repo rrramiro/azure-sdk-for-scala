@@ -1,7 +1,7 @@
 package fr.ramiro.azure.services
 
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.services.cdn.model.CdnProfile
+import fr.ramiro.azure.model.CdnProfile
 import okhttp3.ResponseBody
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FunSuite

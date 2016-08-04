@@ -1,11 +1,12 @@
 package fr.ramiro.azure.services
 
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.services.resourceGroups.model.ResourceGroup
+import fr.ramiro.azure.model.ResourceGroup
 import okhttp3.ResponseBody
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FunSuite
 import retrofit2.Call
+
 import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 
 class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
