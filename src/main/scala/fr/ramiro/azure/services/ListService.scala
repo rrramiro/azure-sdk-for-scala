@@ -14,14 +14,13 @@ trait ListService[T] extends GetService[T] {
   def list(implicit classTag: ClassTag[T]): ServiceResponse[Seq[T]] = {
     val response = createServiceResponse[ListResponse[T]](listInternal.execute, buildBodyList)
     new ServiceResponse[Seq[T]](
-      response.getBody.value,
+      response.getBody.value.map { addParent },
       response.getResponse
     )
   }
 
   private def buildBodyList(body: String)(implicit classTag: ClassTag[T]): ListResponse[T] = {
     val typeResult = objectMapper.getTypeFactory.constructParametricType(classOf[ListResponse[T]], classTag.runtimeClass)
-    val result = objectMapper.readValue(body, typeResult).asInstanceOf[ListResponse[T]]
-    result.copy(value = result.value.map { addParent })
+    objectMapper.readValue(body, typeResult).asInstanceOf[ListResponse[T]]
   }
 }
