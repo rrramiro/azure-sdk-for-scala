@@ -1,29 +1,40 @@
 package fr.ramiro.azure
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{ ParameterizedType, Type }
+import java.lang.reflect.{ ParameterizedType, Type, WildcardType }
 import java.util.concurrent.CompletableFuture
 
 import retrofit2._
 
 class AzureCallAdapterFactory extends CallAdapter.Factory {
-  def get(returnType: Type, annotations: Array[Annotation], retrofit: Retrofit): CallAdapter[_] = {
 
-    if (CallAdapter.Factory.getRawType(returnType) ne classOf[CompletableFuture[_]]) {
+  def isNotOpenWildCard(parameterizedType: ParameterizedType): Boolean = {
+    parameterizedType.getActualTypeArguments.exists {
+      case wildcardType: WildcardType => !wildcardType.getUpperBounds.contains(classOf[Object])
+      case _ => true
+    }
+  }
+
+  def get(retType: Type, annotations: Array[Annotation], retrofit: Retrofit): CallAdapter[_] = {
+    if (CallAdapter.Factory.getRawType(retType) ne classOf[CompletableFuture[_]]) {
       return null
     }
-    if (!returnType.isInstanceOf[ParameterizedType]) {
-      throw new IllegalStateException("CompletableFuture return type must be parameterized" + " as CompletableFuture<Foo> or CompletableFuture<? extends Foo>")
+    retType match {
+      case returnType: ParameterizedType if isNotOpenWildCard(returnType) =>
+        val inType: Type = CallAdapter.Factory.getParameterUpperBound(0, returnType.asInstanceOf[ParameterizedType])
+        if (CallAdapter.Factory.getRawType(inType) ne classOf[Response[_]]) {
+          return new BodyCallAdapter(inType)
+        }
+        inType match {
+          case innerType: ParameterizedType if isNotOpenWildCard(innerType) =>
+            val responseType: Type = CallAdapter.Factory.getParameterUpperBound(0, innerType.asInstanceOf[ParameterizedType])
+            new ResponseCallAdapter(responseType)
+          case _ =>
+            throw new IllegalStateException("Response must be parameterized as Response<Foo> or Response<? extends Foo>")
+        }
+      case _ =>
+        throw new IllegalStateException("CompletableFuture return type must be parameterized as CompletableFuture<Foo> or CompletableFuture<? extends Foo>")
     }
-    val innerType: Type = CallAdapter.Factory.getParameterUpperBound(0, returnType.asInstanceOf[ParameterizedType])
-    if (CallAdapter.Factory.getRawType(innerType) ne classOf[Response[_]]) {
-      return new BodyCallAdapter(innerType)
-    }
-    if (!innerType.isInstanceOf[ParameterizedType]) {
-      throw new IllegalStateException("Response must be parameterized" + " as Response<Foo> or Response<? extends Foo>")
-    }
-    val responseType: Type = CallAdapter.Factory.getParameterUpperBound(0, innerType.asInstanceOf[ParameterizedType])
-    new ResponseCallAdapter(responseType)
   }
 }
 
