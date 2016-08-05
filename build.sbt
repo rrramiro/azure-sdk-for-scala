@@ -15,5 +15,8 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.5",
   "ch.qos.logback" % "logback-classic" % "1.0.13" % "it",
   "org.scalatest" %% "scalatest" % "2.2.6" % "it,test",
-  "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "it,test"
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "it,test",
+  "com.squareup.okhttp3"% "mockwebserver"  % "3.3.1" % "test",
+  "junit" % "junit" % "4.12" % "test",
+  "org.assertj" % "assertj-core"% "3.5.2" % "test"
 )
