@@ -1,0 +1,19 @@
+sudo: false
+
+language: scala
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
+
+scala:
+   - 2.11.8
+
+jdk:
+  - oraclejdk8
+
+sbt_args: ++$TRAVIS_SCALA_VERSION -Dsbt.log.noformat=true -Dfile.encoding=UTF8
+
+script:
+   - sbt clean test
