@@ -13,7 +13,5 @@ scala:
 jdk:
   - oraclejdk8
 
-sbt_args: ++$TRAVIS_SCALA_VERSION -Dsbt.log.noformat=true -Dfile.encoding=UTF8
-
 script:
-   - sbt clean test
+   - sbt ++$TRAVIS_SCALA_VERSION clean test
