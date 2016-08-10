@@ -1,4 +1,7 @@
-lazy val root = (project in file(".")).configs( IntegrationTest ).settings( Defaults.itSettings : _*)
+
+configs(IntegrationTest)
+
+inConfig(IntegrationTest)(Defaults.itSettings)
 
 name := "azure-sdk-for-scala"
 
