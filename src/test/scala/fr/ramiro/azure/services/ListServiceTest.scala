@@ -3,31 +3,33 @@ package fr.ramiro.azure.services
 import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model.CdnProfile
 import okhttp3.ResponseBody
+import okhttp3.mockwebserver.{ MockResponse, MockWebServer }
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FunSuite
-import retrofit2.Call
+import org.scalatest.{ BeforeAndAfterEach, FunSuite }
+import retrofit2.{ Call, Retrofit }
 
-class ListServiceTest extends FunSuite with MockFactory with ServicesFixture {
-  val mockCall = mock[Call[ResponseBody]]
+class ListServiceTest extends FunSuite with MockFactory with BeforeAndAfterEach {
+  private var server: MockWebServer = _
+  private var retrofit: Retrofit = _
+  private var cdnProfilesService: CdnProfilesService = _
 
-  object FakeListService extends ListService[CdnProfile] {
-    override val objectMapper = Azure.objectMapper
-    override val listInternal: Call[ResponseBody] = mockCall
-    override def getInternal(id: String): Call[ResponseBody] = mockCall
-    override def addParent(child: CdnProfile): CdnProfile = child
+  override def beforeEach {
+    server = new MockWebServer
+    retrofit = Azure.retrofit(server.url("/"))
+    cdnProfilesService = new CdnProfilesService(new Azure(retrofit), "subscriptionId", "resourceGroupName")
   }
 
   test("list") {
-    (mockCall.execute _).expects().returns(createSuccessResponse(cdnProfileList))
-    val result = FakeListService.list.getBody
+    server.enqueue(new MockResponse().setBody(cdnProfileList))
+    val result = cdnProfilesService.list
     assert(result.size === 2)
     assert(result.head.name === "{profileName}")
     assert(result.last.name === "{profileName}")
   }
 
   test("get") {
-    (mockCall.execute _).expects().returns(createSuccessResponse(cdnProfile))
-    val result = FakeListService.get("{profileName}").getBody
+    server.enqueue(new MockResponse().setBody(cdnProfile))
+    val result = cdnProfilesService.get("{profileName}")
     assert(result !== null)
     assert(result.name === "{profileName}")
   }

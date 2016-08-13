@@ -11,7 +11,7 @@ import com.microsoft.rest.credentials.TokenCredentialsInterceptor
 import com.microsoft.rest.retry.RetryHandler
 import com.microsoft.rest.serializer.{ FlatteningDeserializer, FlatteningSerializer, JacksonConverterFactory, JacksonMapperAdapter }
 import okhttp3.logging.HttpLoggingInterceptor
-import okhttp3.{ JavaNetCookieJar, OkHttpClient }
+import okhttp3.{ HttpUrl, JavaNetCookieJar, OkHttpClient }
 import retrofit2.Retrofit
 
 object Azure {
@@ -29,26 +29,29 @@ object Azure {
     }.exportObjectMapper
   }
 
-  def apply(credential: AzureTokenCredentials, logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE) = {
+  def okHttpClient(credential: AzureTokenCredentials, logLevel: HttpLoggingInterceptor.Level) = new OkHttpClient.Builder().cookieJar(new JavaNetCookieJar(new CookieManager {
+    setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+  })).addInterceptor(new RequestIdHeaderInterceptor)
+    .addInterceptor(new TokenCredentialsInterceptor(credential))
+    .addInterceptor(new UserAgentInterceptor)
+    .addInterceptor(new RetryHandler(new ResourceGetExponentialBackoffRetryStrategy))
+    .addInterceptor(new RetryHandler())
+    .addInterceptor(new BaseUrlHandler)
+    .addInterceptor(new HttpLoggingInterceptor().setLevel(logLevel))
+    .build()
 
-    val httpClient = (new OkHttpClient.Builder).cookieJar(new JavaNetCookieJar(new CookieManager {
-      setCookiePolicy(CookiePolicy.ACCEPT_ALL)
-    })).addInterceptor(new RequestIdHeaderInterceptor)
-      .addInterceptor(new TokenCredentialsInterceptor(credential))
-      .addInterceptor(new UserAgentInterceptor)
-      .addInterceptor(new RetryHandler(new ResourceGetExponentialBackoffRetryStrategy))
-      .addInterceptor(new RetryHandler())
-      .addInterceptor(new BaseUrlHandler)
-      .addInterceptor(new HttpLoggingInterceptor().setLevel(logLevel)).build()
-
-    val retrofit: Retrofit = (new Retrofit.Builder).baseUrl(credential.baseUrl)
-      .client(httpClient)
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+  def retrofit(baseUrl: HttpUrl, httpClient: Option[OkHttpClient] = None) = {
+    val builder = new Retrofit.Builder().baseUrl(baseUrl)
+    httpClient.foreach { client => builder.client(client) }
+    builder.addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addCallAdapterFactory(new AzureCallAdapterFactory)
       .build()
+  }
 
-    new Azure(retrofit, credential.subscriptionId, objectMapper)
+  def apply(credential: AzureTokenCredentials, logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE) = {
+    new Azure(retrofit(HttpUrl.parse(credential.baseUrl), Some(okHttpClient(credential, logLevel))))
   }
 }
 
-class Azure(val retrofit: Retrofit, val subscriptionId: String, val objectMapper: ObjectMapper)
+class Azure(val retrofit: Retrofit)
 

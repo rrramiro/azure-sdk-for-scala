@@ -1,62 +1,72 @@
 package fr.ramiro.azure.services
 
 import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.{ CloudException, ResourceGroup }
-import okhttp3.ResponseBody
+import fr.ramiro.azure.model.CloudException
+import okhttp3.HttpUrl
+import okhttp3.mockwebserver.{ Dispatcher, MockResponse, MockWebServer, RecordedRequest }
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FunSuite
-import retrofit2.Call
+import org.scalatest.{ BeforeAndAfterAll, FunSuite }
+import retrofit2.Retrofit
 
-class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
-  val mockCall = mock[Call[ResponseBody]]
+class PagesServiceTest extends FunSuite with MockFactory with BeforeAndAfterAll {
+  private var server: MockWebServer = _
+  private var retrofit: Retrofit = _
+  private var resourceGroupsService: ResourceGroupsService = _
+  private var baseUrl: HttpUrl = _
+  private val subscriptionId = "subscriptionId"
 
-  object FakePagedService extends PagedService[ResourceGroup] {
-    override val objectMapper = Azure.objectMapper
-    override def listInternal: Call[ResponseBody] = mockCall
-    override def listNextInternal(nextPageLink: String): Call[ResponseBody] = mockCall
-    override def getInternal(id: String): Call[ResponseBody] = mockCall
-    override def addParent(child: ResourceGroup): ResourceGroup = child
+  override def beforeAll = {
+    server = new MockWebServer
+    baseUrl = server.url("/")
+    retrofit = Azure.retrofit(baseUrl)
+    server.setDispatcher(new Dispatcher() {
+      override def dispatch(request: RecordedRequest): MockResponse = {
+        request.getPath.split("[?]").head match {
+          case "/subscriptions/subscriptionId/resourcegroups/error" =>
+            new MockResponse().setResponseCode(404).setBody(jsonError)
+          case "/subscriptions/subscriptionId/resourcegroups/empty" =>
+            new MockResponse().setResponseCode(404).setBody("")
+          case "/subscriptions/subscriptionId/resourcegroups" =>
+            new MockResponse().setBody(resourceGroupFirstPage)
+          case "/subscriptions/subscriptionId/resourcegroups/next" =>
+            new MockResponse().setBody(resourceGroupLastPage)
+          case _ =>
+            new MockResponse().setResponseCode(404)
+        }
+      }
+    })
+    resourceGroupsService = new ResourceGroupsService(new Azure(retrofit), subscriptionId)
   }
 
   test("2 page success") {
-    (mockCall.execute _).expects().returns(createSuccessResponse(resourceGroupFirstPage))
-    (mockCall.execute _).expects().returns(createSuccessResponse(resourceGroupLastPage))
-    val result = FakePagedService.list.getBody
+    val result = resourceGroupsService.list
     assert(result.size === 2)
     assert(result.head.name === "myresourcegroup1")
     assert(result.last.name === "myresourcegroup2")
   }
 
-  //  test("empty result"){
-  //    (mockCall.execute _).expects().returns(createSuccessResponse(""))
-  //    FakePagedService.list.getBody
-  //  }
-
   test("error") {
-    (mockCall.execute _).expects().returns(createErrorResponse(jsonError))
     val caught = intercept[CloudException] {
-      FakePagedService.list.getBody
+      resourceGroupsService.get("error")
     }
     assert(caught.getMessage === "Invalid status code 404")
   }
 
   test("error empty") {
-    (mockCall.execute _).expects().returns(createErrorResponse(""))
     val caught = intercept[CloudException] {
-      FakePagedService.list.getBody
+      resourceGroupsService.get("empty")
     }
     assert(caught.getMessage === "Invalid status code 404")
   }
 
   test("error null") {
-    (mockCall.execute _).expects().returns(createErrorResponse(null))
     val caught = intercept[CloudException] {
-      FakePagedService.list.getBody
+      resourceGroupsService.get("")
     }
     assert(caught.getMessage === "Invalid status code 404")
   }
 
-  val jsonError =
+  lazy val jsonError =
     """
       |{
       |  "Code": "NotFound",
@@ -73,11 +83,11 @@ class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
       |}
     """.stripMargin
 
-  val resourceGroupFirstPage =
-    """
+  lazy val resourceGroupFirstPage =
+    s"""
       |{
       |  "value": [ {
-      |    "id": "/subscriptions/########-####-####-####-############/resourceGroups/myresourcegroup1",
+      |    "id": "/subscriptions/subscriptionId/resourceGroups/myresourcegroup1",
       |    "name": "myresourcegroup1",
       |    "location": "westus",
       |    "tags": {
@@ -87,15 +97,15 @@ class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
       |      "provisioningState": "Succeeded"
       |    }
       |  } ],
-      |  "nextLink": "https://management.azure.com/subscriptions/########-####-####-####-############/resourcegroups?api-version=2015-01-01&$skiptoken=######"
+      |  "nextLink": "/subscriptions/subscriptionId/resourcegroups/next?api-version=2015-01-01&$$skiptoken=######"
       |}
     """.stripMargin
 
-  val resourceGroupLastPage =
+  lazy val resourceGroupLastPage =
     """
       |{
       |  "value": [ {
-      |    "id": "/subscriptions/########-####-####-####-############/resourceGroups/myresourcegroup2",
+      |    "id": "/subscriptions/subscriptionId/resourceGroups/myresourcegroup2",
       |    "name": "myresourcegroup2",
       |    "location": "westus",
       |    "tags": {
@@ -107,5 +117,4 @@ class PagesServiceTest extends FunSuite with MockFactory with ServicesFixture {
       |  } ]
       |}
     """.stripMargin
-
 }

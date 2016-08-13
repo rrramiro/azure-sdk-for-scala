@@ -6,11 +6,11 @@ import org.scalatest.FunSuite
 
 class AzureTest extends FunSuite {
   test("subscriptions") {
-    Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.getBody.foreach { subscription =>
+    Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.foreach { subscription =>
       println(subscription)
-      subscription.resourceGroups.list.getBody.foreach { resourceGroup =>
+      subscription.resourceGroups.list.foreach { resourceGroup =>
         println(resourceGroup)
-        resourceGroup.cdnProfiles.list.getBody.foreach { cdnProfile =>
+        resourceGroup.cdnProfiles.list.foreach { cdnProfile =>
           println(cdnProfile)
         }
       }

@@ -1,16 +1,14 @@
 package fr.ramiro.azure.services
 
-import com.microsoft.rest.ServiceResponse
 import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model.CdnEndpoint
-import okhttp3.ResponseBody
 import retrofit2.http._
-import retrofit2.{ Call, Response }
+import retrofit2.Response
 
-class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupName: String, profileName: String) extends BaseService[CdnEndpoint] {
-  override val objectMapper = azure.objectMapper
+class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupName: String, profileName: String) extends BaseService {
+  val internal = azure.retrofit.create(classOf[CdnServiceInternal])
 
-  override def addParent(child: CdnEndpoint): CdnEndpoint = {
+  def addParent(child: CdnEndpoint): CdnEndpoint = {
     child.azure = azure
     child.subscriptionId = subscriptionId
     child.resourceGroupName = resourceGroupName
@@ -18,24 +16,16 @@ class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupNam
     child
   }
 
+  def purge(endpointName: String, contentPaths: String*): Boolean = internal.purge(
+    subscriptionId,
+    resourceGroupName,
+    profileName,
+    endpointName,
+    defaultApiVersion,
+    new PurgeRequest(contentPaths)
+  ).code() == 202
+
   private case class PurgeRequest(ContentPaths: Seq[String])
-
-  val cdnInternal = azure.retrofit.create(classOf[CdnServiceInternal])
-
-  private def purgeDelegate(response: Response[ResponseBody]) = {
-    createServiceResponse(response, _ => response.code() == 202)
-  }
-
-  def cdnPurge(endpointName: String, contentPaths: String*): ServiceResponse[Boolean] = purgeDelegate(
-    cdnInternal.purge(
-      azure.subscriptionId,
-      resourceGroupName,
-      profileName,
-      endpointName,
-      defaultApiVersion,
-      new PurgeRequest(contentPaths)
-    ).execute()
-  )
 
   trait CdnServiceInternal {
     /**
@@ -54,7 +44,7 @@ class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupNam
       @Path("endpointName") endpointName: String,
       @Query("api-version") apiVersion: String,
       @Body purgeParam: PurgeRequest
-    ): Call[ResponseBody]
+    ): Response[Void]
   }
 
 }
