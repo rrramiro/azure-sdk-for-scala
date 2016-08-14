@@ -1,3 +1,1 @@
-# azure-sdk-for-scala
-
-[![Build Status](https://travis-ci.org/rrramiro/azure-sdk-for-scala.svg?branch=master)](https://travis-ci.org/rrramiro/azure-sdk-for-scala)
+# azure-sdk-for-scala [![Build Status](https://travis-ci.org/rrramiro/azure-sdk-for-scala.svg?branch=master)](https://travis-ci.org/rrramiro/azure-sdk-for-scala) [![codecov](https://codecov.io/gh/rrramiro/azure-sdk-for-scala/branch/master/graph/badge.svg)](https://codecov.io/gh/rrramiro/azure-sdk-for-scala)
