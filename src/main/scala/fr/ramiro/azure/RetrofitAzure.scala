@@ -1,7 +1,6 @@
 package fr.ramiro.azure
 
 import java.net.{ CookieManager, CookiePolicy }
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.microsoft.azure.serializer.CloudErrorDeserializer
@@ -14,9 +13,9 @@ import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.{ HttpUrl, JavaNetCookieJar, OkHttpClient }
 import retrofit2.Retrofit
 
-object Azure {
+object RetrofitAzure {
 
-  val objectMapper: ObjectMapper = {
+  private lazy val objectMapper: ObjectMapper = {
     new JacksonMapperAdapter {
       override lazy val getObjectMapper: ObjectMapper = new ObjectMapper {
         initializeObjectMapper(this)
@@ -40,7 +39,7 @@ object Azure {
     .addInterceptor(new HttpLoggingInterceptor().setLevel(logLevel))
     .build()
 
-  def retrofit(baseUrl: HttpUrl, httpClient: Option[OkHttpClient] = None) = {
+  def retrofit(baseUrl: HttpUrl, httpClient: Option[OkHttpClient] = None): Retrofit = {
     val builder = new Retrofit.Builder().baseUrl(baseUrl)
     httpClient.foreach { client => builder.client(client) }
     builder.addConverterFactory(JacksonConverterFactory.create(objectMapper))
@@ -49,9 +48,7 @@ object Azure {
   }
 
   def apply(credential: AzureTokenCredentials, logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE) = {
-    new Azure(retrofit(HttpUrl.parse(credential.baseUrl), Some(okHttpClient(credential, logLevel))))
+    retrofit(HttpUrl.parse(credential.baseUrl), Some(okHttpClient(credential, logLevel)))
   }
 }
-
-class Azure(val retrofit: Retrofit)
 

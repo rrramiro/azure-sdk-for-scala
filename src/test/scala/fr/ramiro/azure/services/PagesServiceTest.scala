@@ -1,6 +1,6 @@
 package fr.ramiro.azure.services
 
-import fr.ramiro.azure.Azure
+import fr.ramiro.azure.RetrofitAzure
 import fr.ramiro.azure.model.CloudException
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.{ Dispatcher, MockResponse, MockWebServer, RecordedRequest }
@@ -18,7 +18,7 @@ class PagesServiceTest extends FunSuite with MockFactory with BeforeAndAfterAll 
   override def beforeAll = {
     server = new MockWebServer
     baseUrl = server.url("/")
-    retrofit = Azure.retrofit(baseUrl)
+    retrofit = RetrofitAzure.retrofit(baseUrl)
     server.setDispatcher(new Dispatcher() {
       override def dispatch(request: RecordedRequest): MockResponse = {
         request.getPath.split("[?]").head match {
@@ -35,7 +35,7 @@ class PagesServiceTest extends FunSuite with MockFactory with BeforeAndAfterAll 
         }
       }
     })
-    resourceGroupsService = new ResourceGroupsService(new Azure(retrofit), subscriptionId)
+    resourceGroupsService = new ResourceGroupsService(retrofit, subscriptionId)
   }
 
   test("2 page success") {

@@ -3,13 +3,10 @@ package fr.ramiro.azure
 import com.google.common.reflect.TypeToken
 import java.lang.annotation.Annotation
 import java.lang.reflect.Type
-import java.util
-
-import fr.ramiro.azure.model.{ CollectionResponse, ListResponse }
+import fr.ramiro.azure.model.CollectionResponse
 import okhttp3.mockwebserver.MockWebServer
 import retrofit2.{ CallAdapter, Response, Retrofit }
 import org.scalatest.{ BeforeAndAfterEach, FunSuite }
-
 import scala.concurrent.Future
 
 class AzureCallAdapterFactoryTest extends FunSuite with BeforeAndAfterEach {
@@ -20,7 +17,7 @@ class AzureCallAdapterFactoryTest extends FunSuite with BeforeAndAfterEach {
 
   override def beforeEach {
     server = new MockWebServer
-    retrofit = Azure.retrofit(server.url("/"))
+    retrofit = RetrofitAzure.retrofit(server.url("/"))
   }
 
   test("responseType") {

@@ -1,15 +1,14 @@
 package fr.ramiro.azure.services
 
-import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model.Subscription
-import retrofit2.Response
+import retrofit2.{ Response, Retrofit }
 import retrofit2.http._
 
-class SubscriptionsService(val azureInternal: Azure) extends BaseService {
-  val internal = azureInternal.retrofit.create(classOf[SubscriptionsInternal])
+class SubscriptionsService(val retrofit: Retrofit) extends BaseService {
+  val internal = retrofit.create(classOf[SubscriptionsInternal])
 
   def addParent(child: Subscription): Subscription = {
-    child.azure = azureInternal
+    child.retrofit = retrofit
     child
   }
 

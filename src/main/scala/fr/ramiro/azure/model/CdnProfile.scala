@@ -1,7 +1,7 @@
 package fr.ramiro.azure.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import fr.ramiro.azure.Azure
+import retrofit2.Retrofit
 
 case class CdnProfile(
     id: String,
@@ -17,5 +17,5 @@ case class CdnProfile(
   @JsonIgnore
   var resourceGroupName: String = _
   @JsonIgnore
-  var azure: Azure = _
+  var retrofit: Retrofit = _
 }

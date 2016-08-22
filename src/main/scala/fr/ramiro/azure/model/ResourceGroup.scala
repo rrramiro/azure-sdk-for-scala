@@ -1,7 +1,7 @@
 package fr.ramiro.azure.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import fr.ramiro.azure.Azure
+import retrofit2.Retrofit
 
 case class ResourceGroup(
     id: String,
@@ -13,6 +13,6 @@ case class ResourceGroup(
   @JsonIgnore
   var subscriptionId: String = _
   @JsonIgnore
-  var azure: Azure = _
+  var retrofit: Retrofit = _
 }
 

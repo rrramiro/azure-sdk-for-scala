@@ -1,7 +1,7 @@
 package fr.ramiro.azure.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import fr.ramiro.azure.Azure
+import retrofit2.Retrofit
 
 class Subscription(
     val id: String,
@@ -11,5 +11,13 @@ class Subscription(
     val subscriptionPolicies: SubscriptionPolicies
 ) {
   @JsonIgnore
-  var azure: Azure = _
+  var retrofit: Retrofit = _
+}
+
+object Subscription {
+  def apply(retrofitParam: Retrofit, subscriptionId: String): Subscription = {
+    new Subscription(null, subscriptionId, null, null, SubscriptionPolicies(null, null)) {
+      this.retrofit = retrofitParam
+    }
+  }
 }

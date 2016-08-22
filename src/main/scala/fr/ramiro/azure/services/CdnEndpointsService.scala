@@ -1,15 +1,14 @@
 package fr.ramiro.azure.services
 
-import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model.CdnEndpoint
 import retrofit2.http._
-import retrofit2.Response
+import retrofit2.{ Response, Retrofit }
 
-class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupName: String, profileName: String) extends BaseService {
-  val internal = azure.retrofit.create(classOf[CdnServiceInternal])
+class CdnEndpointsService(retrofit: Retrofit, subscriptionId: String, resourceGroupName: String, profileName: String) extends BaseService {
+  val internal = retrofit.create(classOf[CdnServiceInternal])
 
   def addParent(child: CdnEndpoint): CdnEndpoint = {
-    child.azure = azure
+    child.retrofit = retrofit
     child.subscriptionId = subscriptionId
     child.resourceGroupName = resourceGroupName
     child.profileName = profileName
@@ -22,7 +21,7 @@ class CdnEndpointsService(azure: Azure, subscriptionId: String, resourceGroupNam
     profileName,
     endpointName,
     defaultApiVersion,
-    new PurgeRequest(contentPaths)
+    PurgeRequest(contentPaths)
   ).code() == 202
 
   private case class PurgeRequest(ContentPaths: Seq[String])

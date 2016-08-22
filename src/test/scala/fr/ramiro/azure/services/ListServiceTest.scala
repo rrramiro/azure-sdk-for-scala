@@ -1,12 +1,10 @@
 package fr.ramiro.azure.services
 
-import fr.ramiro.azure.Azure
-import fr.ramiro.azure.model.CdnProfile
-import okhttp3.ResponseBody
+import fr.ramiro.azure.RetrofitAzure
 import okhttp3.mockwebserver.{ MockResponse, MockWebServer }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ BeforeAndAfterEach, FunSuite }
-import retrofit2.{ Call, Retrofit }
+import retrofit2.Retrofit
 
 class ListServiceTest extends FunSuite with MockFactory with BeforeAndAfterEach {
   private var server: MockWebServer = _
@@ -15,8 +13,8 @@ class ListServiceTest extends FunSuite with MockFactory with BeforeAndAfterEach 
 
   override def beforeEach {
     server = new MockWebServer
-    retrofit = Azure.retrofit(server.url("/"))
-    cdnProfilesService = new CdnProfilesService(new Azure(retrofit), "subscriptionId", "resourceGroupName")
+    retrofit = RetrofitAzure.retrofit(server.url("/"))
+    cdnProfilesService = new CdnProfilesService(retrofit, "subscriptionId", "resourceGroupName")
   }
 
   test("list") {

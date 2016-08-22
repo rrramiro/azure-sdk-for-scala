@@ -1,12 +1,14 @@
 package fr.ramiro.azure
 
+import com.typesafe.config.ConfigFactory
+import fr.ramiro.azure.model.Subscription
 import fr.ramiro.azure.services._
 import okhttp3.logging.HttpLoggingInterceptor
 import org.scalatest.FunSuite
 
 class AzureTest extends FunSuite {
-  test("subscriptions") {
-    Azure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.foreach { subscription =>
+  test("lists and pages") {
+    RetrofitAzure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY).subscriptions.list.foreach { subscription =>
       println(subscription)
       subscription.resourceGroups.list.foreach { resourceGroup =>
         println(resourceGroup)
@@ -14,6 +16,16 @@ class AzureTest extends FunSuite {
           println(cdnProfile)
         }
       }
+    }
+  }
+
+  test("From existing subscription"){
+    val config = ConfigFactory.load()
+    val retrofit = RetrofitAzure(AzureTokenCredentials(), HttpLoggingInterceptor.Level.BODY)
+    val subscription = Subscription(retrofit, config.getString("subscription"))
+
+    subscription.resourceGroups.list.foreach { resourceGroup =>
+      println(resourceGroup)
     }
   }
 }

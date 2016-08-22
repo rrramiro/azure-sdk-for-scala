@@ -1,16 +1,14 @@
 package fr.ramiro.azure.services
 
-import fr.ramiro.azure.Azure
 import fr.ramiro.azure.model._
 import okhttp3.ResponseBody
-import retrofit2.Response
+import retrofit2.{ Response, Retrofit }
 import retrofit2.http._
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
 
-class ResourceGroupsService(azure: Azure, subscriptionId: String) extends BaseService {
-  val internal = azure.retrofit.create(classOf[ResourceGroupsInternal])
+class ResourceGroupsService(retrofit: Retrofit, subscriptionId: String) extends BaseService {
+  val internal = retrofit.create(classOf[ResourceGroupsInternal])
 
   def list: Seq[ResourceGroup] = internal.list(subscriptionId, null, null, defaultApiVersion, defaultAcceptLanguage, defaultUserAgent).body().map { addParent }
 
@@ -18,7 +16,7 @@ class ResourceGroupsService(azure: Azure, subscriptionId: String) extends BaseSe
 
   def addParent(child: ResourceGroup): ResourceGroup = {
     child.subscriptionId = subscriptionId
-    child.azure = azure
+    child.retrofit = retrofit
     child
   }
 

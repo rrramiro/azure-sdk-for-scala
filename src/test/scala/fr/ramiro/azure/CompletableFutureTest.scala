@@ -28,7 +28,7 @@ class CompletableFutureTest extends FunSuite with BeforeAndAfterEach {
 
   override def beforeEach() {
     server = new MockWebServer
-    val retrofit = Azure.retrofit(server.url("/"))
+    val retrofit = RetrofitAzure.retrofit(server.url("/"))
     service = retrofit.create(classOf[Service])
   }
 

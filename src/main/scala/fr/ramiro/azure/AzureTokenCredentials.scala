@@ -1,7 +1,6 @@
 package fr.ramiro.azure
 
 import java.util.concurrent.{ ExecutorService, Executors }
-
 import com.microsoft.aad.adal4j.{ AuthenticationContext, AuthenticationResult, ClientCredential }
 import com.microsoft.rest.credentials.TokenCredentials
 import com.typesafe.config.{ Config, ConfigFactory }
@@ -27,7 +26,6 @@ object AzureTokenCredentials {
       config.getString(CLIENT_ID),
       config.getString(TENANT_ID),
       config.getString(CLIENT_KEY),
-      config.getString(SUBSCRIPTION_ID),
       config.getString(AUTH_URL),
       config.getString(MANAGEMENT_URI),
       config.getString(BASE_URL)
@@ -39,7 +37,6 @@ class AzureTokenCredentials(
     clientId: String,
     domain: String,
     secret: String,
-    val subscriptionId: String,
     authenticationEndpoint: String = "https://login.windows.net/",
     tokenAudience: String = "https://management.core.windows.net/",
     val baseUrl: String = "https://management.azure.com/"

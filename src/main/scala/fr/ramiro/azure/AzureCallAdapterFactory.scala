@@ -2,7 +2,6 @@ package fr.ramiro.azure
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.{ ParameterizedType, Type, WildcardType }
-
 import com.google.common.reflect.{ TypeParameter, TypeToken }
 import com.microsoft.azure.CloudError
 import fr.ramiro.azure.model.{ CloudException, CollectionResponse }
